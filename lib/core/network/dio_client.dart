@@ -11,7 +11,7 @@ class DioClient {
   late Dio _dio;
 
   // Update with your actual IP
-  final String _baseUrl = 'http://10.0.2.2:8080/api/v1';
+  final String _baseUrl = 'http://192.168.29.57:8080/api/';
 
   DioClient._internal() {
     BaseOptions options = BaseOptions(
@@ -30,7 +30,7 @@ class DioClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await StorageService().getToken();
-          if (token != null) {
+          if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
           return handler.next(options);
