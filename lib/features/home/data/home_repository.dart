@@ -46,4 +46,44 @@ class HomeRepository {
       return ApiResponse(success: false, message: e.toString());
     }
   }
+  Future<ApiResponse<String>> getUserAddress() async {
+    try {
+      final response = await _dio.get('/user/profile/fetchAddress');
+
+      return ApiResponse<String>.fromJson(
+        response.data,
+            (data) {
+          // The JSON is: { "data": { "address": "Bishna" } }
+          if (data is Map<String, dynamic>) {
+            // Extract the 'address' field safely
+            return data['address']?.toString() ?? '';
+          }
+          return '';
+        },
+      );
+    } catch (e) {
+      return ApiResponse(success: false, message: e.toString());
+    }
+  }
+
+  // PATCH /user/address
+  // Update address
+  Future<ApiResponse<bool>> updateAddress(String newAddress) async {
+    try {
+      final response = await _dio.patch(
+        '/user/profile/address',
+        data: {
+          "address": newAddress // Matches your request body requirements
+        },
+      );
+
+      return ApiResponse<bool>(
+        success: response.data['success'] ?? true,
+        message: response.data['message'] ?? 'Address updated successfully',
+        data: true,
+      );
+    } catch (e) {
+      return ApiResponse(success: false, message: e.toString());
+    }
+  }
 }

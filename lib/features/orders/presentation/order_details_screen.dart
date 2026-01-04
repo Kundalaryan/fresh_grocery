@@ -3,6 +3,7 @@ import '../../../core/constants/app_colors.dart';
 import '../data/orders_repository.dart';
 import '../models/order_details_model.dart';
 import 'widgets/cancel_order_dialog.dart';
+import 'package:open_filex/open_filex.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
   final int orderId; // We need ID to fetch data
@@ -68,7 +69,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ),
           title: Text(
             "Order #${widget.orderId}",
-            style: const TextStyle( // Added const for optimization
+            style: const TextStyle(
+              // Added const for optimization
               color: Colors.black,
               fontWeight: FontWeight.bold,
               fontSize: 18,
@@ -82,136 +84,174 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             : _order == null
             ? const Center(child: Text("Order not found"))
             : SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. STATUS HEADER
-              Text(
-                _getMainStatusText(),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // 2. TIMELINE PROGRESS BAR
-              _buildTimelineWidget(),
-
-              const SizedBox(height: 40),
-
-              // 3. ITEMS LIST HEADER
-              const Text(
-                "Your Items",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // 4. DYNAMIC ITEMS LIST
-              ..._order!.items.map((item) => _buildItemRow(item)),
-
-              const SizedBox(height: 20),
-              const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
-              const SizedBox(height: 20),
-
-              // 5. BILLING SECTION
-              _buildPricingRow("Subtotal", _order!.subtotal),
-              const SizedBox(height: 12),
-              // Assuming remaining amount is fees since API gives total
-              _buildPricingRow("Delivery & Service Fee", _order!.fees),
-
-              const SizedBox(height: 20),
-              const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
-              const SizedBox(height: 10),
-
-              // TOTAL
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Total",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Text(
-                    "\$${_order!.totalAmount.toStringAsFixed(2)}",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary, // Blue
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 40),
-
-              // 6. ACTION BUTTONS
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Logic to view receipt or re-download
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "View Receipt",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Only show Cancel button if status is NOT Cancelled or Delivered
-              if (_order!.status != 'CANCELLED' && _order!.status != 'DELIVERED')
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    // CONNECT THE FUNCTION HERE
-                    onPressed: _showCancelDialog,
-
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      "Cancel Order",
-                      style: TextStyle(
-                        fontSize: 16,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. STATUS HEADER
+                    Text(
+                      _getMainStatusText(),
+                      style: const TextStyle(
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                  ),
-                ),
 
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
+                    const SizedBox(height: 12),
+
+                    // 2. TIMELINE PROGRESS BAR
+                    _buildTimelineWidget(),
+
+                    const SizedBox(height: 40),
+
+                    // 3. ITEMS LIST HEADER
+                    const Text(
+                      "Your Items",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 4. DYNAMIC ITEMS LIST
+                    ..._order!.items.map((item) => _buildItemRow(item)),
+
+                    const SizedBox(height: 20),
+                    const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
+                    const SizedBox(height: 20),
+
+                    // 5. BILLING SECTION
+                    _buildPricingRow("Subtotal", _order!.subtotal),
+                    const SizedBox(height: 12),
+                    // Assuming remaining amount is fees since API gives total
+                    _buildPricingRow("Delivery & Service Fee", _order!.fees),
+
+                    const SizedBox(height: 20),
+                    const Divider(thickness: 1, color: Color(0xFFF0F0F0)),
+                    const SizedBox(height: 10),
+
+                    // TOTAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Text(
+                          "\$${_order!.totalAmount.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary, // Blue
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // 6. ACTION BUTTONS
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // 1. Show Loading Indicator (optional, simply prevent double clicks)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Downloading Receipt..."),
+                            ),
+                          );
+
+                          // 2. Call Repository
+                          final String? filePath = await _repository
+                              .downloadReceipt(widget.orderId);
+
+                          if (filePath != null) {
+                            // 3. Open the File
+                            final result = await OpenFilex.open(filePath);
+
+                            if (result.type != ResultType.done) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Could not open file: ${result.message}",
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          } else {
+                            // Handle Download Error
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Failed to download receipt"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          "View Receipt",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Only show Cancel button if status is NOT Cancelled or Delivered
+                    if (_order!.status != 'CANCELLED' &&
+                        _order!.status != 'DELIVERED')
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton(
+                          // CONNECT THE FUNCTION HERE
+                          onPressed: _showCancelDialog,
+
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade300),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            "Cancel Order",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
       ),
     );
   }
@@ -249,8 +289,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Arriving in 15 mins",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(
+              "Arriving in 15 mins",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
             // Mock Data
             Text("12:45 PM", style: TextStyle(color: Colors.grey)),
             // Mock Data
@@ -315,28 +357,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               children: [
                 Text(
                   item.productName,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   "Qty: ${item.quantity}",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                 ),
               ],
             ),
           ),
           Text(
             "\$${item.priceAtPurchase.toStringAsFixed(2)}",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -347,10 +380,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey[600], fontSize: 16),
-        ),
+        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 16)),
         Text(
           "\$${amount.toStringAsFixed(2)}",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -378,8 +408,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 if (context.mounted) {
                   if (response.success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(response.message),
-                          backgroundColor: Colors.green),
+                      SnackBar(
+                        content: Text(response.message),
+                        backgroundColor: Colors.green,
+                      ),
                     );
 
                     // MARK AS CHANGED

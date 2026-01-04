@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/api_response.dart';
 import '../models/order_model.dart';
@@ -49,6 +52,33 @@ class OrdersRepository {
       );
     } catch (e) {
       return ApiResponse(success: false, message: e.toString());
+    }
+  }
+  // GET /user/orders/{orderId}/reciept
+  // Returns the String path where the file was saved
+  Future<String?> downloadReceipt(int orderId) async {
+    try {
+      // 1. Get the directory to save the file
+      // We use ApplicationDocumentsDirectory so we don't need complex permissions
+      final Directory dir = await getApplicationDocumentsDirectory();
+      final String savePath = '${dir.path}/receipt_$orderId.pdf';
+
+      // 2. Download the file using Dio
+      // We use the specific path you provided
+      await _dio.download(
+        '/user/orders/$orderId/receipt',
+        savePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            print("Downloading: ${(received / total * 100).toStringAsFixed(0)}%");
+          }
+        },
+      );
+
+      return savePath;
+    } catch (e) {
+      print("Download Error: $e");
+      return null;
     }
   }
 }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../onboarding/presentation/about_us_screen.dart';
+import '../data/profile_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,33 +12,124 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Text Controllers (Ready for API integration later)
+  final ProfileRepository _repository = ProfileRepository();
+
+  // State Variables
+  bool _isSendingFeedback = false;
+  String _userName = "Loading..."; // Default text while fetching
+
+  // Controllers
   final TextEditingController _feedbackController = TextEditingController();
   final TextEditingController _currentPassController = TextEditingController();
   final TextEditingController _newPassController = TextEditingController();
 
-  // LOGOUT LOGIC
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName(); // 1. Fetch Name on Init
+  }
+
+  // API Call to Get Name
+  Future<void> _fetchUserName() async {
+    final response = await _repository.getUserName();
+    if (mounted) {
+      setState(() {
+        if (response.success && response.data != null) {
+          _userName = response.data!;
+        } else {
+          _userName = "User"; // Fallback
+        }
+      });
+    }
+  }
+
+  // 2. Dialog to Edit Name
+  void _showEditNameDialog() {
+    final TextEditingController nameController = TextEditingController(text: _userName);
+    bool isUpdating = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Edit Name", style: TextStyle(fontWeight: FontWeight.bold)),
+              content: TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  hintText: "Enter your name",
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isUpdating
+                      ? null
+                      : () async {
+                    final text = nameController.text.trim();
+                    if (text.isEmpty) return;
+
+                    // A. Start Loading
+                    setStateDialog(() => isUpdating = true);
+
+                    // B. Call PATCH API
+                    final response = await _repository.updateUserName(text);
+
+                    // C. Handle Result
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close Dialog
+
+                      if (response.success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Name updated!"), backgroundColor: Colors.green),
+                        );
+                        _fetchUserName(); // Refresh UI
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: isUpdating
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _handleLogout() async {
-    // 1. Show confirmation dialog (Optional, but good UX)
-    // For now, executing directly as requested:
-
-    // 2. Delete Token
     await StorageService().deleteToken();
-
     if (!mounted) return;
-
-    // 3. Redirect to About Us Screen & Clear History
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const AboutUsScreen()),
-          (route) => false, // Remove back stack
+          (route) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB), // Slightly grey background from design
+      backgroundColor: const Color(0xFFF8F9FB),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF8F9FB),
         elevation: 0,
@@ -65,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Center(
               child: Column(
                 children: [
-                  // Avatar with Camera Icon
+                  // Avatar
                   Stack(
                     children: [
                       Container(
@@ -75,13 +165,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 4),
                           boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                            ),
+                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
                           ],
                           image: const DecorationImage(
-                            // Placeholder Image
                             image: NetworkImage("https://i.pravatar.cc/300"),
                             fit: BoxFit.cover,
                           ),
@@ -103,25 +189,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Name with Edit Icon
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "Jane Doe",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                  // --- CLICKABLE NAME ROW ---
+                  GestureDetector(
+                    onTap: _showEditNameDialog, // Make clickable
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _userName, // Dynamic Name
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.edit, size: 18, color: AppColors.primary),
-                    ],
+                        const SizedBox(width: 8),
+                        const Icon(Icons.edit, size: 18, color: AppColors.primary),
+                      ],
+                    ),
                   ),
+
                   const SizedBox(height: 4),
 
-                  // Email
+                  // Email (Static for now)
                   Text(
                     "janedoe@example.com",
                     style: TextStyle(
@@ -163,15 +253,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: SizedBox(
                       height: 40,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // TODO: Call Feedback API
+                        onPressed: _isSendingFeedback
+                            ? null
+                            : () async {
+                          final text = _feedbackController.text.trim();
+                          if (text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Please write a suggestion first")),
+                            );
+                            return;
+                          }
+                          setState(() => _isSendingFeedback = true);
+                          final response = await _repository.submitSuggestion(text);
+                          if (mounted) {
+                            setState(() => _isSendingFeedback = false);
+                            if (response.success) {
+                              _feedbackController.clear();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Thank you! Feedback sent."), backgroundColor: Colors.green),
+                              );
+                              FocusManager.instance.primaryFocus?.unfocus();
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+                              );
+                            }
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary.withOpacity(0.1),
                           elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: Text(
+                        child: _isSendingFeedback
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            : Text(
                           "Send Feedback",
                           style: TextStyle(
                             color: AppColors.primary,
@@ -196,14 +312,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildLabel("Current Password"),
                   _buildPasswordField(_currentPassController, "••••••••"),
-
                   const SizedBox(height: 16),
-
                   _buildLabel("New Password"),
                   _buildPasswordField(_newPassController, "Enter new password"),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -255,8 +367,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
 
             const SizedBox(height: 20),
-
-            // Version
             Text(
               "Version 2.4.0",
               style: TextStyle(color: Colors.grey[400], fontSize: 12),
@@ -268,7 +378,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper: Section Card Container
   Widget _buildSectionCard({required String title, required IconData icon, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -307,7 +416,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper: Input Label
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -322,7 +430,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper: Password Input
   Widget _buildPasswordField(TextEditingController controller, String hint) {
     return Container(
       decoration: BoxDecoration(

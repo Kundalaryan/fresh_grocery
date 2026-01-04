@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // IMPORT ADDED
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../orders/presentation/orders_screen.dart';
@@ -25,6 +25,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
 
+  // State variable for Address
+  String _deliveryAddress = "Loading...";
+
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
 
@@ -41,6 +44,102 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     super.initState();
     _fetchProducts();
+    _fetchAddress(); // Fetch address on startup
+  }
+
+  // 1. Fetch Address API
+  Future<void> _fetchAddress() async {
+    final response = await _repository.getUserAddress();
+    if (mounted) {
+      setState(() {
+        if (response.success && response.data != null && response.data!.isNotEmpty) {
+          _deliveryAddress = response.data!;
+        } else {
+          _deliveryAddress = "Select Delivery Location";
+        }
+      });
+    }
+  }
+
+  // 2. Show Address Update Dialog
+  void _showAddressDialog() {
+    final textValue = _deliveryAddress == "Select Delivery Location" || _deliveryAddress == "Loading..."
+        ? ""
+        : _deliveryAddress;
+
+    final TextEditingController addressController = TextEditingController(text: textValue);
+    bool isUpdating = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text("Update Address", style: TextStyle(fontWeight: FontWeight.bold)),
+              content: TextField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  hintText: "Enter full address",
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                ),
+                maxLines: 3,
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isUpdating
+                      ? null
+                      : () async {
+                    if (addressController.text.trim().isEmpty) return;
+
+                    setStateDialog(() => isUpdating = true);
+
+                    final response = await _repository.updateAddress(addressController.text.trim());
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+
+                      if (response.success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Address updated!"),
+                              backgroundColor: Colors.green
+                          ),
+                        );
+                        // Refresh address on screen
+                        _fetchAddress();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(response.message),
+                              backgroundColor: Colors.red
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: isUpdating
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _fetchProducts({String? query}) async {
@@ -82,7 +181,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        // MAIN STRUCTURE: Column with NO ScrollView wrapper
         child: Column(
           children: [
             // --- 1. FIXED HEADER SECTION (Location & Search) ---
@@ -91,43 +189,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Location Row
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          shape: BoxShape.circle,
+                  // --- MODIFIED LOCATION ROW ---
+                  // Wrapped in GestureDetector to make it clickable
+                  GestureDetector(
+                    onTap: _showAddressDialog, // <--- Connects to the Dialog
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                              Icons.location_on, color: AppColors.primary,
+                              size: 20),
                         ),
-                        child: const Icon(
-                            Icons.location_on, color: AppColors.primary,
-                            size: 20),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Delivering to",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
+                        const SizedBox(width: 12),
+                        // Expanded ensures long addresses don't overflow
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Delivering to",
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                              // Display the DYNAMIC ADDRESS here
+                              Text(
+                                _deliveryAddress,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            "Home, 123 Maple St",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        // Dropdown indicator icon
+                        const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                      ],
+                    ),
                   ),
+
                   const SizedBox(height: 20),
+
                   // Search Bar
                   TextField(
                     controller: _searchController,
@@ -194,7 +306,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     "Popular Near You",
                     style: TextStyle(
                       fontSize: 18,
@@ -225,7 +337,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   children: [
                     const Icon(Icons.search_off, size: 60, color: Colors.grey),
                     const SizedBox(height: 10),
-                    Text("No products found",
+                    const Text("No products found",
                         style: TextStyle(color: Colors.grey)),
                   ],
                 ),
@@ -248,9 +360,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
-        selectedLabelStyle: TextStyle(
+        selectedLabelStyle: const TextStyle(
             fontSize: 12, fontWeight: FontWeight.bold),
-        unselectedLabelStyle: TextStyle(fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontSize: 12),
         currentIndex: 0,
         onTap: (index) {
           if (index == 1) {
@@ -259,7 +371,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const OrdersScreen()));
           }
           else if (index == 3) {
-            // NEW: Navigate to Profile
             Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
           }
         },
@@ -293,13 +404,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Row(
       children: [
-        // IMAGE SECTION (UPDATED TO USE CACHING)
+        // IMAGE SECTION
         Opacity(
           opacity: isAvailable ? 1.0 : 0.5,
           child: product.imageUrl.isNotEmpty
               ? CachedNetworkImage(
             imageUrl: product.imageUrl,
-            // 1. Success Builder: Keeps your exact design (Border Radius, 80x80)
             imageBuilder: (context, imageProvider) => Container(
               width: 80,
               height: 80,
@@ -312,7 +422,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            // 2. Loading Placeholder
             placeholder: (context, url) => Container(
               width: 80,
               height: 80,
@@ -322,7 +431,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
               child: const Center(child: Icon(Icons.image, color: Colors.grey)),
             ),
-            // 3. Error Fallback
             errorWidget: (context, url, error) => Container(
               width: 80,
               height: 80,
@@ -334,7 +442,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           )
               : Container(
-            // Fallback if URL is empty string
             width: 80,
             height: 80,
             decoration: BoxDecoration(
@@ -347,7 +454,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         const SizedBox(width: 16),
 
-        // TEXT DETAILS (UNCHANGED)
+        // TEXT DETAILS
         Expanded(
           child: Opacity(
             opacity: isAvailable ? 1.0 : 0.6,
@@ -356,7 +463,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               children: [
                 Text(
                   product.name,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
@@ -368,7 +475,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 const SizedBox(height: 4),
                 Text(
                   "\$${product.price.toStringAsFixed(2)}",
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ],
@@ -376,7 +483,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
 
-        // ACTION BUTTON (UNCHANGED)
+        // ACTION BUTTON
         if (isAvailable)
           Container(
             width: 40,
