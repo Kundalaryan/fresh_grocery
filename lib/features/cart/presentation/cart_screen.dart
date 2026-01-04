@@ -9,6 +9,7 @@ import '../models/cart_item_model.dart';
 // Import Provider
 import 'providers/cart_provider.dart';
 import 'widgets/order_failed_dialog.dart';
+import '../../orders/presentation/order_details_screen.dart';
 
 // 1. Change State class to ConsumerStatefulWidget
 class CartScreen extends ConsumerStatefulWidget {
@@ -54,8 +55,11 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           onTrackOrder: () {
             Navigator.pop(ctx); // Close dialog
             // TODO: Navigate to Order Tracking Screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Tracking feature coming soon!")),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OrderDetailsScreen(orderId: newOrderId),
+              ),
             );
           },
           onContinueShopping: () {

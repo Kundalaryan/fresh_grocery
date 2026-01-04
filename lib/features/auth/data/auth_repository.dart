@@ -9,30 +9,36 @@ class AuthRepository {
   final Dio _dio = DioClient().dio;
   final StorageService _storage = StorageService();
 
-  // POST /login
   Future<ApiResponse<String>> login(LoginRequest request) async {
     try {
-      final response = await _dio.post(
-        '/auth/login',
-        data: request.toJson(),
-      );
+      final response = await _dio.post('/auth/login', data: request.toJson());
 
-      final apiResponse = ApiResponse<String>.fromJson(
+      return ApiResponse<String>.fromJson(
         response.data,
             (json) {
+          String token = '';
           if (json is Map<String, dynamic>) {
-            // Robust check for token key
-            return json['token'] ?? json['accessToken'] ?? '';
+            token = json['token'] ?? json['accessToken'] ?? '';
+          } else {
+            token = json.toString();
           }
-          return json.toString();
+
+          // FIX: Sanitize the token.
+          // If backend sends "Bearer eyJ...", remove "Bearer " so we store ONLY the code.
+          if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+          }
+
+          if (token.isNotEmpty) {
+            // Await is crucial here!
+            _storage.saveToken(token).then((_) {
+              print("✅ Login Success: Token sanitized and saving initiated.");
+            });
+          }
+
+          return token;
         },
       );
-
-      if (apiResponse.success && apiResponse.data != null && apiResponse.data!.isNotEmpty) {
-        await _storage.saveToken(apiResponse.data!);
-      }
-
-      return apiResponse;
     } catch (e) {
       return ApiResponse(success: false, message: e.toString());
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../data/orders_repository.dart';
 import '../models/order_model.dart';
+import 'order_details_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -76,7 +77,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: Text(
+        title: const Text( // Added const
           "Order History",
           style: TextStyle(
             color: Colors.black,
@@ -114,9 +115,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 return GestureDetector(
                   onTap: () => _onFilterSelected(filter),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : const Color(0xFFF4F5F7),
+                      color: isSelected ? AppColors.primary : const Color(
+                          0xFFF4F5F7),
                       borderRadius: BorderRadius.circular(30),
                     ),
                     child: Center(
@@ -142,8 +145,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredOrders.isEmpty
-                ? Center(
-              child: Text("No orders found", style: TextStyle(color: Colors.grey)),
+                ? const Center( // Added const
+              child: Text(
+                  "No orders found", style: TextStyle(color: Colors.grey)),
             )
                 : ListView.separated(
               padding: const EdgeInsets.all(20),
@@ -186,122 +190,135 @@ class _OrdersScreenState extends State<OrdersScreen> {
         btnText = "Track";
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. IMAGE PLACEHOLDER (Since API doesn't give image, we use generic icon)
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-              image: const DecorationImage(
-                // You can add a placeholder asset here
-                image: NetworkImage("https://via.placeholder.com/150"),
-                fit: BoxFit.cover,
+    // WRAP THE ENTIRE CONTAINER IN GESTURE DETECTOR
+    return GestureDetector(
+      onTap: () async {
+        // 1. Wait for the result from OrderDetailsScreen
+        // We use 'await' to pause here until the user comes back
+        final bool? shouldRefresh = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetailsScreen(orderId: order.id),
+          ),
+        );
+
+        // 2. If the user cancelled the order, refresh the list
+        if (shouldRefresh == true) {
+          _fetchOrders();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. IMAGE PLACEHOLDER
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+                image: const DecorationImage(
+                  image: NetworkImage("https://via.placeholder.com/150"),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: const Icon(
+                  Icons.shopping_bag_outlined, color: Colors.grey),
+            ),
+
+            const SizedBox(width: 16),
+
+            // 2. ORDER DETAILS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Order #${order.id}",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "${order.formattedDate} • FastGoods",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Status Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusBg,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, size: 14, color: statusColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          order.uiStatus,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            // Fallback icon if no image
-            child: const Icon(Icons.shopping_bag_outlined, color: Colors.grey),
-          ),
 
-          const SizedBox(width: 16),
-
-          // 2. ORDER DETAILS
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            // 3. PRICE & ACTION
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Order Title (Using ID since API lacks store name)
                 Text(
-                  "Order #${order.id}",
-                  style: TextStyle(
+                  "\$${order.totalAmount.toStringAsFixed(2)}",
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // Date & Items (API lacks item count, so we show just Date)
+                const SizedBox(height: 16),
+                // Visual Text Button (Clicking anywhere on card works now,
+                // but this visual cue remains)
                 Text(
-                  "${order.formattedDate} • FastGoods",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[500],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                // Status Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusBg,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(statusIcon, size: 14, color: statusColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        order.uiStatus,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: statusColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 3. PRICE & ACTION
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "\$${order.totalAmount.toStringAsFixed(2)}",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-              GestureDetector(
-                onTap: () {
-                  // Handle Reorder/Track logic
-                },
-                child: Text(
                   btnText,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
-              ),
-            ],
-          )
-        ],
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart'; // IMPORT ADDED
 
 import '../../../core/constants/app_colors.dart';
 import '../../orders/presentation/orders_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
 import '../data/home_repository.dart';
 import '../models/product_model.dart';
 
@@ -256,6 +257,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const CartScreen()));
           } else if (index == 2) {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const OrdersScreen()));
+          }
+          else if (index == 3) {
+            // NEW: Navigate to Profile
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
           }
         },
         items: [
