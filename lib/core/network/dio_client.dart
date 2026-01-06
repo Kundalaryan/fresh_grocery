@@ -11,7 +11,7 @@ class DioClient {
   late Dio _dio;
 
   // Use 10.0.2.2 for Android Emulator
-  final String _baseUrl = 'http://192.168.29.57:8080/api/';
+  final String _baseUrl = 'https://api.expertsec.in/api/';
 
   DioClient._internal() {
     BaseOptions options = BaseOptions(
