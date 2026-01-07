@@ -4,6 +4,8 @@ class CartItemModel {
   final String name;
   final String imageUrl;
   final double price;
+  final String unit;      // NEW
+  final String category;
   int quantity; // Mutable because we can change it in the UI
 
   CartItemModel({
@@ -11,6 +13,8 @@ class CartItemModel {
     required this.name,
     required this.imageUrl,
     required this.price,
+    required this.unit,     // NEW
+    required this.category,
     this.quantity = 1,
   });
 }

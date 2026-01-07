@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../home/presentation/home_screen.dart';
 import '../data/auth_repository.dart';
 import '../models/login_request.dart';
 import 'signup_screen.dart';
-// import features/home if you have one, or splash
+import '../../home/presentation/home_screen.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,31 +14,25 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Controllers to capture text input
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // State variables
   bool _obscurePassword = true;
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
 
-  // Initialize Repository
   final AuthRepository _authRepo = AuthRepository();
 
-  // LOGIN LOGIC
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    // 1. Create Request
     final request = LoginRequest(
       phone: _phoneController.text.trim(),
       password: _passwordController.text,
     );
 
-    // 2. Call API
     final response = await _authRepo.login(request);
 
     setState(() => _isLoading = false);
@@ -46,9 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (response.success) {
-      // --- SUCCESS LOGIC START ---
-
-      // 1. Show SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Login Successful!"),
@@ -57,22 +48,14 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-      // 2. NAVIGATE TO HOME
-      // pushAndRemoveUntil deletes the "Back" history so user can't go back to Login
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
-            (route) => false,
+        (route) => false,
       );
-
-      // --- SUCCESS LOGIC END ---
     } else {
-      // FAILURE
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(response.message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(response.message), backgroundColor: Colors.red),
       );
     }
   }
@@ -81,91 +64,98 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      // --- UPDATED APP BAR ---
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // We removed the manual 'leading' IconButton.
+        // Now, if you are forced to Login (History cleared), no arrow appears.
+        // If you click "Login" from "About Us", the arrow appears automatically.
       ),
+      // -----------------------
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                SizedBox(height: 20.h),
 
-                // 1. HEADER
                 Text(
                   "Welcome back!",
                   style: TextStyle(
-                    fontSize: 28,
+                    // Changed to standard TextStyle for optimization
+                    fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textBlack,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 Text(
                   "Login to continue shopping for your daily needs.",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     color: AppColors.textGrey,
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 40.h),
 
-                // 2. PHONE FIELD
                 Text(
                   "Phone Number",
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textBlack,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  style: TextStyle(fontSize: 16),
+                  maxLength: 10, // Limits input length
+                  style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
-                    hint: "+91 98765 43210",
+                    hint: "9876543210",
                     prefixIcon: Icons.phone_outlined,
-                  ),
+                  ).copyWith(counterText: ""), // Hides the "0/10" counter text
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Phone is required';
+                    if (value == null || value.isEmpty)
+                      return 'Phone is required';
+                    if (value.length != 10) return 'Phone must be 10 digits';
+                    // Regex to check if string contains only numbers
+                    if (!RegExp(r'^[0-9]+$').hasMatch(value))
+                      return 'Enter valid numbers only';
                     return null;
                   },
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24.h),
 
-                // 3. PASSWORD FIELD
                 Text(
                   "Password",
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textBlack,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "Enter your password",
                     prefixIcon: Icons.lock_outline_rounded,
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: Colors.grey,
                       ),
                       onPressed: () {
@@ -176,19 +166,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Password is required';
+                    if (value == null || value.isEmpty)
+                      return 'Password is required';
                     return null;
                   },
                 ),
 
-                // 4. FORGOT PASSWORD
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // Navigate to Forgot Password
-                    },
-                    child: Text(
+                    onPressed: () {},
+                    child: const Text(
                       "Forgot Password?",
                       style: TextStyle(
                         color: AppColors.primary,
@@ -198,18 +186,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                SizedBox(height: 30.h),
 
-                // 5. LOGIN BUTTON
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 56.h,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(16.r),
                       ),
                       elevation: 5,
                       shadowColor: AppColors.primary.withOpacity(0.4),
@@ -217,47 +204,58 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      "Login",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
+                            "Login",
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
 
-                const SizedBox(height: 100), // Spacing for bottom area
+                SizedBox(height: 100.h),
 
-                // 6. FOOTER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have an account?",
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                        );
-                      },
-                      child: Text(
-                        "Sign Up",
+                // 9. FOOTER (Adaptive)
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account? ", // Or "Don't have an account?" for Login
                         style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14.sp,
                         ),
                       ),
-                    ),
-                  ],
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
+                        },
+                        child: Padding(
+                          // Add padding for easier tapping
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child:  Text(
+                            "Sign Up", // Or "Sign Up"
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                                fontSize: 14.sp,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
+                 SizedBox(height: 20.h),
               ],
             ),
           ),
@@ -266,7 +264,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Helper for Input Styles to keep code clean
   InputDecoration _inputDecoration({
     required String hint,
     required IconData prefixIcon,
@@ -274,26 +271,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[400]),
-      prefixIcon: Icon(prefixIcon, color: Colors.grey[500], size: 22),
+      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
+      prefixIcon: Icon(prefixIcon, color: Colors.grey[500], size: 22.sp),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white,
-      contentPadding: const EdgeInsets.all(18),
+      contentPadding:  EdgeInsets.all(18.r),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         borderSide: const BorderSide(color: Colors.red),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(16.r),
         borderSide: const BorderSide(color: Colors.red),
       ),
     );

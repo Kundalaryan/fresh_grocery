@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../home/presentation/home_screen.dart';
@@ -17,12 +19,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Start the robust initialization logic
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    // 1. Wait for 2 seconds AND check storage
     final results = await Future.wait([
       Future.delayed(const Duration(seconds: 2)),
       StorageService().getToken(),
@@ -33,13 +33,11 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
-      // CASE A: User HAS token -> Go to Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
     } else {
-      // CASE B: No token -> Go to About Us / Onboarding
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const AboutUsScreen()),
@@ -49,7 +47,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Set status bar to transparent to match the clean design
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
@@ -64,47 +61,45 @@ class _SplashScreenState extends State<SplashScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 100.w, // Adaptive
+                  height: 100.w, // Keep aspect ratio square
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(24.r), // Adaptive Radius
                     boxShadow: [
                       BoxShadow(
-                        // USE THE NEW COLOR
                         color: AppColors.primary.withOpacity(0.25),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                        blurRadius: 20.r,
+                        offset: Offset(0, 10.h),
                       ),
                     ],
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Icon(
                       Icons.flash_on_rounded,
-                      size: 50,
-                      color: AppColors.primary, // USE THE NEW COLOR
+                      size: 50.sp, // Adaptive Icon
+                      color: AppColors.primary,
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 40.h),
 
-                // Font is automatically Jakarta Sans because of main.dart
-                const Text(
+                Text(
                   "FastGoods",
                   style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700, // Bold in Jakarta Sans
+                    fontSize: 32.sp, // Adaptive Font
+                    fontWeight: FontWeight.w700,
                     color: AppColors.textBlack,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8.h),
 
-                const Text(
+                Text(
                   "Groceries in minutes",
                   style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.primary, // USE THE NEW COLOR
+                    fontSize: 16.sp, // Adaptive Font
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -113,33 +108,32 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
 
           Positioned(
-            bottom: 40,
+            bottom: 40.h, // Adaptive Position
             left: 0,
             right: 0,
             child: Column(
               children: [
                 Container(
-                  width: 150,
-                  height: 4,
+                  width: 150.w, // Adaptive Width
+                  height: 4.h, // Adaptive Height
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(2.r),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(2.r),
                     child: const LinearProgressIndicator(
                       backgroundColor: Colors.transparent,
-                      // USE THE NEW COLOR
                       valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                const Text(
+                SizedBox(height: 20.h),
+                Text(
                   "v1.0.2",
                   style: TextStyle(
                     color: AppColors.textGrey,
-                    fontSize: 12,
+                    fontSize: 12.sp, // Adaptive Font
                     fontWeight: FontWeight.w500,
                   ),
                 ),

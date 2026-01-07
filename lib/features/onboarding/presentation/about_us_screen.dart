@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
 import '../../../core/constants/app_colors.dart';
 import '../../auth/presentation/login_screen.dart';
 import '../../auth/presentation/signup_screen.dart';
@@ -13,26 +14,26 @@ class AboutUsScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: EdgeInsets.symmetric(horizontal: 24.0.w, vertical: 16.0.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               // 1. TOP LOGO
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.shopping_bag, // Simple black bag icon
                     color: Colors.black,
-                    size: 28,
+                    size: 28.sp,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8.w),
                   Text(
                     "FastGoods", // Kept your project name
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -47,7 +48,7 @@ class AboutUsScreen extends StatelessWidget {
                 "Essentials\ndelivered simply.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 42, // Large bold text
+                  fontSize: 42.sp, // Large bold text
                   height: 1.1, // Tighter line height
                   fontWeight: FontWeight.w700,
                   color: Colors.black,
@@ -55,49 +56,49 @@ class AboutUsScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 40),
+              SizedBox(height: 40.h),
 
               // 3. ABOUT US LABEL
               Text(
                 "ABOUT US",
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 13.sp,
                   fontWeight: FontWeight.w700,
                   color: AppColors.primary, // #135bec
                   letterSpacing: 1.5, // Spaced out letters
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // 4. SUB-HEADLINE
               Text(
                 "Minimalism in motion.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 22.sp,
                   fontWeight: FontWeight.w600,
                   color: Colors.black,
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // 5. DESCRIPTION TEXT
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                padding: EdgeInsets.symmetric(horizontal: 10.0.w),
                 child: Text(
                   "We strip away the noise to bring you fresh groceries and daily goods with absolute efficiency. Quality products, smooth experience, zero clutter.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     height: 1.5,
                     color: const Color(0xFF666666), // Soft grey
                   ),
                 ),
               ),
 
-              const SizedBox(height: 32),
+              SizedBox(height: 32.h),
 
               // 6. FEATURES LIST (Bullet points)
               Row(
@@ -116,7 +117,7 @@ class AboutUsScreen extends StatelessWidget {
               // 7. SIGN UP BUTTON (Outlined)
               SizedBox(
                 width: double.infinity,
-                height: 56, // Tall, modern button
+                height: 56.h, // Tall, modern button
                 child: OutlinedButton(
                   onPressed: () {
                     Navigator.push(
@@ -127,13 +128,13 @@ class AboutUsScreen extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: AppColors.primary, width: 1.5),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(30.r),
                     ),
                   ),
                   child: Text(
                     "Sign Up",
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,
                     ),
@@ -141,7 +142,7 @@ class AboutUsScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16.h),
 
               // 8. LOGIN BUTTON (Text only)
               TextButton(
@@ -154,25 +155,25 @@ class AboutUsScreen extends StatelessWidget {
                 child: Text(
                   "Login",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primary,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20.h),
 
               // 9. FOOTER TEXT
               Text(
                 "Terms of Service and Privacy Policy apply.",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12.sp,
                   color: Colors.grey[400],
                 ),
               ),
 
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
             ],
           ),
         ),
@@ -185,7 +186,7 @@ class AboutUsScreen extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontSize: 16,
+        fontSize: 16.sp,
         fontWeight: FontWeight.w500,
         color: Colors.black,
       ),
@@ -195,10 +196,10 @@ class AboutUsScreen extends StatelessWidget {
   // Helper widget for the small grey dot
   Widget _buildDot() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      padding: EdgeInsets.symmetric(horizontal: 12.0.w),
       child: Container(
-        width: 4,
-        height: 4,
+        width: 4.w,
+        height: 4.w, // Keep square aspect ratio
         decoration: BoxDecoration(
           color: Colors.grey[300],
           shape: BoxShape.circle,

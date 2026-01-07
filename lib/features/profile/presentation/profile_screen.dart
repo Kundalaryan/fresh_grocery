@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
+import 'package:google_fonts/google_fonts.dart'; // Keep if used globally, else remove
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../onboarding/presentation/about_us_screen.dart';
@@ -16,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // State Variables
   bool _isSendingFeedback = false;
-  String _userName = "Loading..."; // Default text while fetching
+  String _userName = "Loading...";
 
   // Controllers
   final TextEditingController _feedbackController = TextEditingController();
@@ -26,10 +29,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchUserName(); // 1. Fetch Name on Init
+    _fetchUserName();
   }
 
-  // API Call to Get Name
   Future<void> _fetchUserName() async {
     final response = await _repository.getUserName();
     if (mounted) {
@@ -37,13 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (response.success && response.data != null) {
           _userName = response.data!;
         } else {
-          _userName = "User"; // Fallback
+          _userName = "User";
         }
       });
     }
   }
 
-  // 2. Dialog to Edit Name
   void _showEditNameDialog() {
     final TextEditingController nameController = TextEditingController(text: _userName);
     bool isUpdating = false;
@@ -54,22 +55,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              title: const Text("Edit Name", style: TextStyle(fontWeight: FontWeight.bold)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)), // Adaptive
+              title: Text("Edit Name", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp)),
               content: TextField(
                 controller: nameController,
+                style: TextStyle(fontSize: 16.sp),
                 decoration: InputDecoration(
                   hintText: "Enter your name",
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
                   filled: true,
                   fillColor: Colors.grey[100],
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                  child: Text("Cancel", style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
                 ),
                 ElevatedButton(
                   onPressed: isUpdating
@@ -78,21 +81,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final text = nameController.text.trim();
                     if (text.isEmpty) return;
 
-                    // A. Start Loading
                     setStateDialog(() => isUpdating = true);
 
-                    // B. Call PATCH API
                     final response = await _repository.updateUserName(text);
 
-                    // C. Handle Result
                     if (context.mounted) {
-                      Navigator.pop(context); // Close Dialog
+                      Navigator.pop(context);
 
                       if (response.success) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Name updated!"), backgroundColor: Colors.green),
                         );
-                        _fetchUserName(); // Refresh UI
+                        _fetchUserName();
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text(response.message), backgroundColor: Colors.red),
@@ -102,11 +102,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                   ),
                   child: isUpdating
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ? SizedBox(width: 16.w, height: 16.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)),
                 ),
               ],
             );
@@ -143,87 +143,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontSize: 18.sp, // Adaptive Font
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.0.r), // Adaptive Padding
         child: Column(
           children: [
             // --- 1. PROFILE HEADER ---
             Center(
               child: Column(
                 children: [
-                  // Avatar
-                  Stack(
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 4),
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10),
-                          ],
-                          image: const DecorationImage(
-                            image: NetworkImage("https://i.pravatar.cc/300"),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 10.h), // Adaptive Height
 
-                  // --- CLICKABLE NAME ROW ---
+                  // --- CLICKABLE NAME ROW ONLY ---
                   GestureDetector(
-                    onTap: _showEditNameDialog, // Make clickable
+                    onTap: _showEditNameDialog,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          _userName, // Dynamic Name
+                          _userName,
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 26.sp, // Adaptive Font
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.edit, size: 18, color: AppColors.primary),
+                        SizedBox(width: 8.w),
+                        Icon(Icons.edit, size: 20.sp, color: AppColors.primary), // Adaptive Icon
                       ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // Email (Static for now)
-                  Text(
-                    "janedoe@example.com",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 32),
+            SizedBox(height: 40.h), // Increased spacing after header
 
             // --- 2. FEEDBACK CARD ---
             _buildSectionCard(
@@ -234,24 +191,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFF4F5F7),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(12.r), // Adaptive Radius
                     ),
                     child: TextField(
                       controller: _feedbackController,
                       maxLines: 4,
+                      style: TextStyle(fontSize: 14.sp),
                       decoration: InputDecoration(
                         hintText: "Tell us how we can improve...",
-                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.all(16),
+                        contentPadding: EdgeInsets.all(16.r), // Adaptive Padding
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   Align(
                     alignment: Alignment.centerRight,
                     child: SizedBox(
-                      height: 40,
+                      height: 40.h, // Adaptive Height
                       child: ElevatedButton(
                         onPressed: _isSendingFeedback
                             ? null
@@ -283,15 +241,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary.withOpacity(0.1),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                         ),
                         child: _isSendingFeedback
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(strokeWidth: 2))
                             : Text(
                           "Send Feedback",
                           style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
+                            fontSize: 14.sp,
                           ),
                         ),
                       ),
@@ -301,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
 
             // --- 3. SECURITY CARD ---
             _buildSectionCard(
@@ -312,27 +271,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   _buildLabel("Current Password"),
                   _buildPasswordField(_currentPassController, "••••••••"),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   _buildLabel("New Password"),
                   _buildPasswordField(_newPassController, "Enter new password"),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24.h),
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
+                    height: 50.h,
                     child: ElevatedButton(
                       onPressed: () {
                         // TODO: Call Update Password API
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                       ),
                       child: Text(
                         "Update Password",
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 16.sp,
                         ),
                       ),
                     ),
@@ -341,19 +300,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            const SizedBox(height: 30),
+            SizedBox(height: 30.h),
 
             // --- 4. LOGOUT BUTTON ---
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 56.h,
               child: OutlinedButton.icon(
                 onPressed: _handleLogout,
-                icon: const Icon(Icons.logout, color: Color(0xFFE53935)),
+                icon: Icon(Icons.logout, color: const Color(0xFFE53935), size: 22.sp),
                 label: Text(
                   "Log Out",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFFE53935),
                   ),
@@ -361,17 +320,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.red.shade100),
                   backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                 ),
               ),
             ),
 
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             Text(
               "Version 2.4.0",
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              style: TextStyle(color: Colors.grey[400], fontSize: 12.sp),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
           ],
         ),
       ),
@@ -380,14 +339,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSectionCard({required String title, required IconData icon, required Widget child}) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20.r), // Adaptive Padding
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20.r), // Adaptive Radius
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
+            blurRadius: 10.r,
             offset: const Offset(0, 5),
           ),
         ],
@@ -397,19 +356,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primary, size: 20),
-              const SizedBox(width: 10),
+              Icon(icon, color: AppColors.primary, size: 20.sp),
+              SizedBox(width: 10.w),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           child,
         ],
       ),
@@ -418,11 +377,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: EdgeInsets.only(bottom: 8.0.h),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 14.sp,
           color: Colors.black87,
           fontWeight: FontWeight.w500,
         ),
@@ -434,16 +393,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF4F5F7),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
       ),
       child: TextField(
         controller: controller,
         obscureText: true,
+        style: TextStyle(fontSize: 14.sp),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         ),
       ),
     );

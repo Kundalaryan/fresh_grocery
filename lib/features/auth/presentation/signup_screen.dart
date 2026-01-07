@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // Verified Import
+// Removed google_fonts import as we are using local assets now
 import '../../../core/constants/app_colors.dart';
 import '../data/auth_repository.dart';
 import '../models/signup_request.dart';
-import 'login_screen.dart'; // To navigate to Login
+import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -13,13 +15,23 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  // Controllers
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
-  final _addressController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // State
+  String? _selectedAddress;
+
+  final List<String> _addressOptions = [
+    "Bishna",
+    "Jammu",
+    "Samba",
+    "Kathua",
+    "Udhampur",
+    "R.S. Pura",
+    "Gandhi Nagar",
+    "Trikuta Nagar"
+  ];
+
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _agreedToTerms = false;
@@ -43,10 +55,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
       password: _passwordController.text,
-      address: _addressController.text.trim(),
+      address: _selectedAddress!,
     );
 
-    // Call API
     final response = await _authRepo.register(request);
 
     setState(() => _isLoading = false);
@@ -57,7 +68,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account Created! Please Login.")),
       );
-      // Redirect to Login Page after success
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -82,7 +92,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontSize: 18.sp, // Correct usage
           ),
         ),
         leading: IconButton(
@@ -92,19 +102,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10),
+          padding: EdgeInsets.symmetric(horizontal: 24.0.w, vertical: 10.h), // Correct usage
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 10),
+                SizedBox(height: 10.h),
 
-                // 1. HEADLINE WITH COLORED TEXT
                 RichText(
                   text: TextSpan(
-                    style: TextStyle(
-                      fontSize: 28,
+                    // FIX: Inherit global font style so it matches Login Page
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 28.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                       height: 1.2,
@@ -113,49 +123,79 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const TextSpan(text: "Fresh Groceries\n"),
                       TextSpan(
                         text: "In Minutes",
-                        style: TextStyle(color: AppColors.primary),
+                        style: TextStyle(color: AppColors.primary, fontSize: 28.sp, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: 12.h),
 
-                // 2. SUBTITLE
                 Text(
                   "Create an account to start your fresh delivery journey.",
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 16.sp,
                     color: AppColors.textGrey,
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30.h),
 
                 // 3. PHONE INPUT
                 _buildLabel("Phone Number"),
-                _buildTextField(
+                TextFormField(
                   controller: _phoneController,
-                  hint: "+91 98765 43210",
-                  icon: Icons.phone_in_talk_outlined,
-                  inputType: TextInputType.phone,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  style: TextStyle(fontSize: 16.sp),
+                  decoration: _inputDecoration(
+                    hint: "9876543210",
+                  ).copyWith(
+                    counterText: "",
+                    suffixIcon: Icon(Icons.phone_in_talk_outlined, color: Colors.grey[500], size: 22.sp),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return "Required";
+                    if (val.length != 10) return "Must be 10 digits";
+                    if (!RegExp(r'^[0-9]+$').hasMatch(val)) return 'Digits only';
+                    return null;
+                  },
                 ),
 
                 // 4. NAME INPUT
                 _buildLabel("Name"),
-                _buildTextField(
+                TextFormField(
                   controller: _nameController,
-                  hint: "Full Name",
-                  icon: Icons.person_outline,
-                  inputType: TextInputType.name,
+                  keyboardType: TextInputType.name,
+                  style: TextStyle(fontSize: 16.sp),
+                  decoration: _inputDecoration(hint: "Full Name").copyWith(
+                    suffixIcon: Icon(Icons.person_outline, color: Colors.grey[500], size: 22.sp),
+                  ),
+                  validator: (val) => val == null || val.isEmpty ? "Required" : null,
                 ),
 
-                // 5. ADDRESS INPUT
+                // 5. ADDRESS INPUT (DROPDOWN)
                 _buildLabel("Address"),
-                _buildTextField(
-                  controller: _addressController,
-                  hint: "Delivery Address",
-                  icon: Icons.location_on_outlined, // Pin icon
-                  inputType: TextInputType.streetAddress,
+                DropdownButtonFormField<String>(
+                  value: _selectedAddress,
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  // FIX: Removed explicit fontFamily, relies on main.dart now
+                  style: TextStyle(fontSize: 16.sp, color: Colors.black),
+                  decoration: _inputDecoration(hint: "Select your location").copyWith(
+                    suffixIcon: null,
+                    prefixIcon: Icon(Icons.location_on_outlined, color: Colors.grey[500], size: 22.sp),
+                  ),
+                  items: _addressOptions.map((String location) {
+                    return DropdownMenuItem<String>(
+                      value: location,
+                      child: Text(location),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedAddress = newValue;
+                    });
+                  },
+                  validator: (value) => value == null ? "Please select an address" : null,
                 ),
 
                 // 6. PASSWORD INPUT
@@ -163,20 +203,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "Create a password",
-                    prefixIcon: null, // No prefix in your design for password? Or maybe lock?
-                    // Design shows no prefix, but I'll add lock for consistency if needed.
-                    // Let's stick to design: No prefix icon shown in image for password, only suffix.
-                    // Actually, let's keep it consistent with other fields or empty.
-                    // If we strictly follow the image, there is no prefix icon for password.
                   ).copyWith(
-                    // Override to add toggle
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                         color: Colors.grey,
+                        size: 22.sp,
                       ),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
@@ -184,39 +219,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: (val) => val!.length < 6 ? 'Password too short' : null,
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: 20.h),
 
                 // 7. CHECKBOX & TERMS
                 Row(
                   children: [
                     SizedBox(
-                      height: 24,
-                      width: 24,
+                      height: 24.h,
+                      width: 24.w,
                       child: Checkbox(
                         value: _agreedToTerms,
                         activeColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.r)),
                         onChanged: (val) {
                           setState(() => _agreedToTerms = val ?? false);
                         },
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12.w),
                     Expanded(
                       child: RichText(
                         text: TextSpan(
-                          style: TextStyle(color: Colors.black, fontSize: 13),
+                          // FIX: Inherit Global Font
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.black,
+                              fontSize: 13.sp
+                          ),
                           children: [
                             const TextSpan(text: "I agree to the "),
                             TextSpan(
                               text: "Terms of Service",
-                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                               recognizer: TapGestureRecognizer()..onTap = () {},
                             ),
                             const TextSpan(text: " and "),
                             TextSpan(
                               text: "Privacy Policy",
-                              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                               recognizer: TapGestureRecognizer()..onTap = () {},
                             ),
                           ],
@@ -226,17 +265,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 30),
+                SizedBox(height: 30.h),
 
                 // 8. SIGN UP BUTTON
                 SizedBox(
                   width: double.infinity,
-                  height: 56,
+                  height: 56.h,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSignUp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                       elevation: 4,
                       shadowColor: AppColors.primary.withOpacity(0.4),
                     ),
@@ -245,7 +284,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         : Text(
                       "Sign Up",
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -253,34 +292,41 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 30),
+                SizedBox(height: 30.h),
 
-                // 9. FOOTER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Already have an account? ",
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const LoginScreen()),
-                        );
-                      },
-                      child: Text(
-                        "Log In",
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                // 9. FOOTER (Adaptive)
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        "Already have an account? ",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14.sp),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0.h),
+                          child: Text(
+                            "Log In",
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14.sp,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30.h),
               ],
             ),
           ),
@@ -289,14 +335,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper: Label above text fields
   Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 8),
+      padding: EdgeInsets.only(top: 20.h, bottom: 8.h),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 14.sp,
           fontWeight: FontWeight.w700,
           color: Colors.black,
         ),
@@ -304,52 +349,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Helper: Common Text Field Builder
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    TextInputType inputType = TextInputType.text,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: inputType,
-      style: TextStyle(fontSize: 16),
-      decoration: _inputDecoration(
-        hint: hint,
-        prefixIcon: Icon(icon, color: Colors.grey[500], size: 22), // Right side icon in your design?
-        // Note: Your design shows icons on the RIGHT for Phone/Person/Location.
-        // Let's adjust styles to match the image exactly (Icons at the End).
-      ).copyWith(
-        prefixIcon: null, // Remove default prefix
-        suffixIcon: Icon(icon, color: Colors.grey[500], size: 22), // Add to end
-      ),
-      validator: (val) => val == null || val.isEmpty ? "Required" : null,
-    );
-  }
-
-  // Helper: Decoration Style
-  InputDecoration _inputDecoration({
-    required String hint,
-    Icon? prefixIcon,
-  }) {
+  // Common Style for Inputs
+  InputDecoration _inputDecoration({required String hint}) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[400]),
-      prefixIcon: prefixIcon,
+      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
       filled: true,
-      fillColor: const Color(0xFFF8F9FE), // Light bluish-grey background from design
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      fillColor: const Color(0xFFF8F9FE),
+      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none, // No border by default in design
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: Colors.grey.shade200),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
       ),
     );

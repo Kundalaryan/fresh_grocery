@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/skeletons.dart';
 import '../data/orders_repository.dart';
 import '../models/order_model.dart';
 import 'order_details_screen.dart';
@@ -15,10 +17,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
   final OrdersRepository _repository = OrdersRepository();
 
   bool _isLoading = true;
-  List<OrderModel> _allOrders = []; // Stores everything from API
-  List<OrderModel> _filteredOrders = []; // Stores what is visible
+  List<OrderModel> _allOrders = [];
+  List<OrderModel> _filteredOrders = [];
 
-  // Filter State
   String _selectedFilter = 'All';
   final List<String> _filters = ["All", "Delivered", "Processing", "Cancelled"];
 
@@ -38,23 +39,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
         _isLoading = false;
         if (response.success && response.data != null) {
           _allOrders = response.data!;
-          // Sort by newest first (optional)
-          // _allOrders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          _applyFilter(); // Initial filter
+          _applyFilter();
         }
       });
     }
   }
 
-  // Client-side filtering logic
   void _applyFilter() {
     setState(() {
       if (_selectedFilter == 'All') {
         _filteredOrders = List.from(_allOrders);
       } else {
-        // Map UI filter names to API status keys if needed,
-        // or just match based on our helper logic.
-        // Logic: Check if the UI Status contains the filter word
         _filteredOrders = _allOrders.where((order) {
           return order.uiStatus == _selectedFilter;
         }).toList();
@@ -77,12 +72,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text( // Added const
+        title: Text(
           "Order History",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontSize: 18.sp, // Adaptive Font
           ),
         ),
         leading: IconButton(
@@ -93,34 +88,37 @@ class _OrdersScreenState extends State<OrdersScreen> {
           IconButton(
             icon: const Icon(Icons.filter_list, color: Colors.black),
             onPressed: () {
-              // Optional: Show advanced filter
+              // Optional: Advanced filter logic
             },
-          )
+          ),
         ],
       ),
       body: Column(
         children: [
           // 1. FILTER CHIPS
           Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            height: 60.h, // Adaptive Height
+            padding: EdgeInsets.symmetric(vertical: 10.h),
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
               scrollDirection: Axis.horizontal,
               itemCount: _filters.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => SizedBox(width: 12.w),
               itemBuilder: (context, index) {
                 final filter = _filters[index];
                 final isSelected = filter == _selectedFilter;
                 return GestureDetector(
                   onTap: () => _onFilterSelected(filter),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.w,
+                      vertical: 8.h,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : const Color(
-                          0xFFF4F5F7),
-                      borderRadius: BorderRadius.circular(30),
+                      color: isSelected
+                          ? AppColors.primary
+                          : const Color(0xFFF4F5F7),
+                      borderRadius: BorderRadius.circular(30.r), // Adaptive Radius
                     ),
                     child: Center(
                       child: Text(
@@ -128,7 +126,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.grey[600],
                           fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                          fontSize: 14.sp, // Adaptive Font
                         ),
                       ),
                     ),
@@ -138,24 +136,39 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
           ),
 
-          const SizedBox(height: 10),
+          SizedBox(height: 10.h),
 
           // 2. ORDERS LIST
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _filteredOrders.isEmpty
-                ? const Center( // Added const
-              child: Text(
-                  "No orders found", style: TextStyle(color: Colors.grey)),
-            )
-                : ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: _filteredOrders.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 20),
-              itemBuilder: (context, index) {
-                return _buildOrderCard(_filteredOrders[index]);
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              backgroundColor: Colors.white,
+              onRefresh: () async {
+                await _fetchOrders();
               },
+              child: _isLoading
+                  ? ListView.separated(
+                padding: EdgeInsets.all(20.r),
+                itemCount: 5,
+                separatorBuilder: (_, __) => SizedBox(height: 0.h),
+                itemBuilder: (context, index) =>
+                const SkeletonOrderItem(),
+              )
+                  : _filteredOrders.isEmpty
+                  ? Center(
+                child: Text(
+                  "No orders found",
+                  style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                ),
+              )
+                  : ListView.separated(
+                padding: EdgeInsets.all(20.r),
+                itemCount: _filteredOrders.length,
+                separatorBuilder: (_, __) => SizedBox(height: 20.h),
+                itemBuilder: (context, index) {
+                  return _buildOrderCard(_filteredOrders[index]);
+                },
+              ),
             ),
           ),
         ],
@@ -164,7 +177,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _buildOrderCard(OrderModel order) {
-    // Determine colors based on status
     Color statusColor;
     Color statusBg;
     IconData statusIcon;
@@ -184,17 +196,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
         btnText = "Reorder";
         break;
       default: // ORDER_PLACED / Processing
-        statusColor = const Color(0xFFFF9800); // Orange
+        statusColor = const Color(0xFFFF9800);
         statusBg = const Color(0xFFFFF3E0);
         statusIcon = Icons.local_shipping;
         btnText = "Track";
     }
 
-    // WRAP THE ENTIRE CONTAINER IN GESTURE DETECTOR
     return GestureDetector(
       onTap: () async {
-        // 1. Wait for the result from OrderDetailsScreen
-        // We use 'await' to pause here until the user comes back
+        // Navigate and wait for refresh signal
         final bool? shouldRefresh = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -202,87 +212,92 @@ class _OrdersScreenState extends State<OrdersScreen> {
           ),
         );
 
-        // 2. If the user cancelled the order, refresh the list
         if (shouldRefresh == true) {
-          _fetchOrders();
+          _fetchOrders(); // Reload list if order was cancelled
         }
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16.r), // Adaptive Padding
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20.r), // Adaptive Radius
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.03),
-              blurRadius: 10,
+              blurRadius: 10.r,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. IMAGE PLACEHOLDER
+            // Image Placeholder
             Container(
-              width: 60,
-              height: 60,
+              width: 60.w,
+              height: 60.h,
               decoration: BoxDecoration(
                 color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(12.r),
                 image: const DecorationImage(
                   image: NetworkImage("https://via.placeholder.com/150"),
                   fit: BoxFit.cover,
                 ),
               ),
               child: const Icon(
-                  Icons.shopping_bag_outlined, color: Colors.grey),
+                Icons.shopping_bag_outlined,
+                color: Colors.grey,
+              ),
             ),
 
-            const SizedBox(width: 16),
+            SizedBox(width: 12.w), // Adjusted spacing
 
-            // 2. ORDER DETAILS
+            // Order Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     "Order #${order.id}",
-                    style: const TextStyle(
-                      fontSize: 16,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16.sp, // Adaptive Font
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4.h),
                   Text(
                     "${order.formattedDate} • FastGoods",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[500],
-                    ),
+                    style: TextStyle(fontSize: 13.sp, color: Colors.grey[500]),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   // Status Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: statusBg,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(statusIcon, size: 14, color: statusColor),
-                        const SizedBox(width: 4),
-                        Text(
-                          order.uiStatus,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: statusColor,
+                        Icon(statusIcon, size: 14.sp, color: statusColor),
+                        SizedBox(width: 4.w),
+                        Flexible(
+                          child: Text(
+                            order.uiStatus,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.bold,
+                              color: statusColor,
+                            ),
                           ),
                         ),
                       ],
@@ -292,31 +307,30 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
             ),
 
-            // 3. PRICE & ACTION
+            // Price & Action
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                // UPDATED: Rupee Symbol
                 Text(
-                  "\$${order.totalAmount.toStringAsFixed(2)}",
-                  style: const TextStyle(
-                    fontSize: 16,
+                  "₹${order.totalAmount.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontSize: 16.sp, // Adaptive Font
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 16),
-                // Visual Text Button (Clicking anywhere on card works now,
-                // but this visual cue remains)
+                SizedBox(height: 16.h),
                 Text(
                   btnText,
-                  style: const TextStyle(
-                    fontSize: 14,
+                  style: TextStyle(
+                    fontSize: 14.sp, // Adaptive Font
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
