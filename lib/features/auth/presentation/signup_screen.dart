@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // Verified Import
-// Removed google_fonts import as we are using local assets now
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/constants/app_colors.dart';
 import '../data/auth_repository.dart';
 import '../models/signup_request.dart';
@@ -92,7 +91,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18.sp, // Correct usage
+            fontSize: 18.sp,
           ),
         ),
         leading: IconButton(
@@ -102,7 +101,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.0.w, vertical: 10.h), // Correct usage
+          padding: EdgeInsets.symmetric(horizontal: 24.0.w, vertical: 10.h),
           child: Form(
             key: _formKey,
             child: Column(
@@ -112,7 +111,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 RichText(
                   text: TextSpan(
-                    // FIX: Inherit global font style so it matches Login Page
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       fontSize: 28.sp,
                       fontWeight: FontWeight.bold,
@@ -146,6 +144,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
+
+                  // --- KEYBOARD UX 1: Next Field ---
+                  textInputAction: TextInputAction.next,
+
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "9876543210",
@@ -166,6 +168,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 TextFormField(
                   controller: _nameController,
                   keyboardType: TextInputType.name,
+
+                  // --- KEYBOARD UX 2: Next Field ---
+                  textInputAction: TextInputAction.next,
+
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(hint: "Full Name").copyWith(
                     suffixIcon: Icon(Icons.person_outline, color: Colors.grey[500], size: 22.sp),
@@ -178,7 +184,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 DropdownButtonFormField<String>(
                   value: _selectedAddress,
                   icon: const Icon(Icons.keyboard_arrow_down),
-                  // FIX: Removed explicit fontFamily, relies on main.dart now
                   style: TextStyle(fontSize: 16.sp, color: Colors.black),
                   decoration: _inputDecoration(hint: "Select your location").copyWith(
                     suffixIcon: null,
@@ -203,6 +208,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+
+                  // --- KEYBOARD UX 3: Done & Submit ---
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleSignUp(),
+
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "Create a password",
@@ -240,7 +250,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Expanded(
                       child: RichText(
                         text: TextSpan(
-                          // FIX: Inherit Global Font
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Colors.black,
                               fontSize: 13.sp

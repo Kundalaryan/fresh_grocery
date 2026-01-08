@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,8 +23,9 @@ class HomeScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
-
+Timer? _debounce;
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+
   final HomeRepository _repository = HomeRepository();
 
   List<ProductModel> _products = [];
@@ -103,7 +106,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _onSearchChanged(String value) {
-    _fetchProducts(query: value);
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _fetchProducts(query: value);
+    });
   }
 
   @override

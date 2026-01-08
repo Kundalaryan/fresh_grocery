@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
-        (route) => false,
+            (route) => false,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,15 +64,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // --- UPDATED APP BAR ---
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        // We removed the manual 'leading' IconButton.
-        // Now, if you are forced to Login (History cleared), no arrow appears.
-        // If you click "Login" from "About Us", the arrow appears automatically.
       ),
-      // -----------------------
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -86,7 +81,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   "Welcome back!",
                   style: TextStyle(
-                    // Changed to standard TextStyle for optimization
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textBlack,
@@ -116,17 +110,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
-                  maxLength: 10, // Limits input length
+                  maxLength: 10,
+
+                  // --- KEYBOARD UX 1: Show "Next" Arrow ---
+                  textInputAction: TextInputAction.next,
+
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "9876543210",
                     prefixIcon: Icons.phone_outlined,
-                  ).copyWith(counterText: ""), // Hides the "0/10" counter text
+                  ).copyWith(counterText: ""),
                   validator: (value) {
                     if (value == null || value.isEmpty)
                       return 'Phone is required';
                     if (value.length != 10) return 'Phone must be 10 digits';
-                    // Regex to check if string contains only numbers
                     if (!RegExp(r'^[0-9]+$').hasMatch(value))
                       return 'Enter valid numbers only';
                     return null;
@@ -147,6 +144,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+
+                  // --- KEYBOARD UX 2: Show "Check" Icon ---
+                  textInputAction: TextInputAction.done,
+                  // --- KEYBOARD UX 3: Trigger Login on Enter ---
+                  onFieldSubmitted: (_) => _handleLogin(),
+
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "Enter your password",
@@ -204,26 +207,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                            "Login",
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
 
                 SizedBox(height: 100.h),
 
-                // 9. FOOTER (Adaptive)
                 Center(
                   child: Wrap(
                     alignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ", // Or "Don't have an account?" for Login
+                        "Don't have an account? ",
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontWeight: FontWeight.w500,
@@ -240,14 +242,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                         child: Padding(
-                          // Add padding for easier tapping
                           padding: EdgeInsets.symmetric(vertical: 8.h),
-                          child:  Text(
-                            "Sign Up", // Or "Sign Up"
+                          child: Text(
+                            "Sign Up",
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
-                                fontSize: 14.sp,
+                              fontSize: 14.sp,
                             ),
                           ),
                         ),
@@ -255,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
-                 SizedBox(height: 20.h),
+                SizedBox(height: 20.h),
               ],
             ),
           ),
@@ -276,7 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white,
-      contentPadding:  EdgeInsets.all(18.r),
+      contentPadding: EdgeInsets.all(18.r),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16.r),
         borderSide: BorderSide(color: Colors.grey.shade300),
