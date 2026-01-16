@@ -128,7 +128,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => OrderHelpScreen(orderId: widget.orderId),
+                    builder: (context) =>
+                        OrderHelpScreen(orderId: widget.orderId),
                   ),
                 );
               },
@@ -152,167 +153,187 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             : _order == null
             ? const Center(child: Text("Order not found"))
             : SingleChildScrollView(
-          padding: EdgeInsets.all(24.r),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. STATUS HEADER
-              Text(
-                _getMainStatusText(),
-                style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-
-              SizedBox(height: 12.h),
-
-              // 2. TIMELINE PROGRESS BAR
-              _buildTimelineWidget(),
-
-              SizedBox(height: 40.h),
-
-              // 3. ITEMS LIST HEADER
-              Text(
-                "Your Items",
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 16.h),
-
-              // 4. DYNAMIC ITEMS LIST
-              ..._order!.items.map((item) => _buildItemRow(item)),
-
-              SizedBox(height: 20.h),
-              Divider(thickness: 1, color: const Color(0xFFF0F0F0)),
-              SizedBox(height: 20.h),
-
-              // 5. BILLING SECTION
-              _buildPricingRow("Subtotal", _order!.subtotal),
-
-              SizedBox(height: 20.h),
-              Divider(thickness: 1, color: const Color(0xFFF0F0F0)),
-              SizedBox(height: 10.h),
-
-              // TOTAL
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Total",
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  Flexible(
-                    child: Text(
-                      "\₹${_order!.totalAmount.toStringAsFixed(2)}",
-                      overflow: TextOverflow.ellipsis,
+                padding: EdgeInsets.all(24.r),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 1. STATUS HEADER
+                    Text(
+                      _getMainStatusText(),
                       style: TextStyle(
-                        fontSize: 22.sp,
+                        fontSize: 28.sp,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: Colors.black,
                       ),
                     ),
-                  ),
-                ],
-              ),
 
-              SizedBox(height: 40.h),
+                    SizedBox(height: 12.h),
 
-              // 6. ACTION BUTTONS
-              SizedBox(
-                width: double.infinity,
-                height: 52.h,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Downloading Receipt..."),
+                    // 2. TIMELINE PROGRESS BAR
+                    _buildTimelineWidget(),
+
+                    SizedBox(height: 40.h),
+
+                    // 3. ITEMS LIST HEADER
+                    Text(
+                      "Your Items",
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
-                    );
+                    ),
+                    SizedBox(height: 16.h),
 
-                    final String? filePath = await _repository
-                        .downloadReceipt(widget.orderId);
+                    // 4. DYNAMIC ITEMS LIST
+                    ..._order!.items.map((item) => _buildItemRow(item)),
 
-                    if (filePath != null) {
-                      final result = await OpenFilex.open(filePath);
-                      if (result.type != ResultType.done) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                "Could not open file: ${result.message}",
+                    SizedBox(height: 20.h),
+                    Divider(thickness: 1, color: const Color(0xFFF0F0F0)),
+                    SizedBox(height: 20.h),
+
+                    // 5. BILLING SECTION
+                    _buildPricingRow("Subtotal", _order!.subtotal),
+
+                    SizedBox(height: 20.h),
+                    Divider(thickness: 1, color: const Color(0xFFF0F0F0)),
+                    SizedBox(height: 10.h),
+
+                    // TOTAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Total",
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            "\₹${_order!.totalAmount.toStringAsFixed(2)}",
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 22.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 40.h),
+                    // 6. ACTION BUTTONS
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52.h,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          // 1. CHECK STATUS
+                          bool isDelivered = _order!.status == 'DELIVERED';
+
+                          // 2. IF NOT DELIVERED, SHOW MESSAGE & STOP
+                          if (!isDelivered) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Receipt is available only after delivery.",
+                                ),
+                                backgroundColor: Colors.orange,
+                                duration: Duration(seconds: 2),
                               ),
-                              backgroundColor: Colors.red,
+                            );
+                            return; // Stop execution
+                          }
+
+                          // 3. IF DELIVERED, PROCEED DOWNLOAD
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Downloading Receipt..."),
                             ),
                           );
-                        }
-                      }
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Failed to download receipt"),
-                            backgroundColor: Colors.red,
+
+                          final String? filePath = await _repository
+                              .downloadReceipt(widget.orderId);
+
+                          if (filePath != null) {
+                            final result = await OpenFilex.open(filePath);
+                            if (result.type != ResultType.done) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      "Could not open file: ${result.message}",
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Failed to download receipt"),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          // 4. CHANGE COLOR BASED ON STATUS
+                          backgroundColor: _order!.status == 'DELIVERED'
+                              ? AppColors.primary
+                              : Colors.grey,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
                           ),
-                        );
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Text(
+                          "View Receipt",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    "View Receipt",
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                    SizedBox(height: 16.h),
+
+                    // Cancel Button
+                    if (_order!.status != 'CANCELLED' &&
+                        _order!.status != 'DELIVERED')
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52.h,
+                        child: OutlinedButton(
+                          onPressed: _showCancelDialog,
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFEBEE),
+                            side: BorderSide(color: Colors.red.shade200),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
+                          child: Text(
+                            "Cancel Order",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 20.h),
+                  ],
                 ),
               ),
-              SizedBox(height: 16.h),
-
-              // Cancel Button
-              if (_order!.status != 'CANCELLED' &&
-                  _order!.status != 'DELIVERED')
-                SizedBox(
-                  width: double.infinity,
-                  height: 52.h,
-                  child: OutlinedButton(
-                    onPressed: _showCancelDialog,
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFEBEE),
-                      side: BorderSide(color: Colors.red.shade200),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                    child: Text(
-                      "Cancel Order",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ),
-              SizedBox(height: 20.h),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -355,7 +376,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text("", style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
+            Text(
+              "",
+              style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+            ),
           ],
         ),
         SizedBox(height: 12.h),
@@ -444,7 +468,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 16.sp)),
+        Text(
+          label,
+          style: TextStyle(color: Colors.grey[600], fontSize: 16.sp),
+        ),
         Text(
           "₹${amount.toStringAsFixed(2)}",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
