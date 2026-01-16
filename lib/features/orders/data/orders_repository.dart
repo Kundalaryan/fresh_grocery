@@ -81,4 +81,23 @@ class OrdersRepository {
       return null;
     }
   }
+  Future<ApiResponse<bool>> reportIssue(int orderId, String issueType, String description) async {
+    try {
+      final response = await _dio.post(
+        '/user/issues/$orderId', // Check if it is 'users' or 'user' in your backend
+        data: {
+          "issueType": issueType,
+          "description": description
+        },
+      );
+
+      return ApiResponse<bool>(
+        success: response.data['success'] ?? true,
+        message: response.data['message'] ?? 'Issue reported successfully',
+        data: true,
+      );
+    } catch (e) {
+      return ApiResponse(success: false, message: e.toString());
+    }
+  }
 }

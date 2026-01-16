@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
-import 'package:google_fonts/google_fonts.dart'; // Optional if used globally
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // Responsive
 import 'package:open_filex/open_filex.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../data/orders_repository.dart';
 import '../models/order_details_model.dart';
+import 'order_help_screen.dart';
 import 'widgets/cancel_order_dialog.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
@@ -117,9 +117,33 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
-              fontSize: 18.sp, // Adaptive Font
+              fontSize: 18.sp,
             ),
           ),
+          // --- ADDED HELP BUTTON ---
+          actions: [
+            TextButton(
+              onPressed: () {
+                // Navigate to the new Full Screen Design
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderHelpScreen(orderId: widget.orderId),
+                  ),
+                );
+              },
+              child: Text(
+                "Help",
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w), // Right Padding
+          ],
+          // -------------------------
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -128,7 +152,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             : _order == null
             ? const Center(child: Text("Order not found"))
             : SingleChildScrollView(
-          padding: EdgeInsets.all(24.r), // Adaptive Padding
+          padding: EdgeInsets.all(24.r),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -136,7 +160,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               Text(
                 _getMainStatusText(),
                 style: TextStyle(
-                  fontSize: 28.sp, // Adaptive Font
+                  fontSize: 28.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -186,13 +210,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       color: Colors.black,
                     ),
                   ),
-                  // Flexible prevents overflow on small screens
                   Flexible(
                     child: Text(
                       "\₹${_order!.totalAmount.toStringAsFixed(2)}",
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 22.sp, // Adaptive Font
+                        fontSize: 22.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.primary,
                       ),
@@ -206,7 +229,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               // 6. ACTION BUTTONS
               SizedBox(
                 width: double.infinity,
-                height: 52.h, // Adaptive Height
+                height: 52.h,
                 child: ElevatedButton(
                   onPressed: () async {
                     ScaffoldMessenger.of(context).showSnackBar(

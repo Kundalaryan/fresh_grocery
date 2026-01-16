@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
             child: MaterialApp(
               navigatorKey: navigatorKey,
               debugShowCheckedModeBanner: false,
-              title: 'FastGoods',
+              title: 'GetIt',
 
               // 1. THEME SETUP
               theme: ThemeData(
