@@ -327,7 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             SizedBox(height: 20.h),
             Text(
-              "Version 2.4.0",
+              "Version 1.0.0",
               style: TextStyle(color: Colors.grey[400], fontSize: 12.sp),
             ),
             SizedBox(height: 20.h),

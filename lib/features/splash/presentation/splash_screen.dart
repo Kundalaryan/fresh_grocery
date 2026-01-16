@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -15,7 +15,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -47,10 +46,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+      ),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -60,45 +61,32 @@ class _SplashScreenState extends State<SplashScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 100.w, // Adaptive
-                  height: 100.w, // Keep aspect ratio square
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24.r), // Adaptive Radius
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.25),
-                        blurRadius: 20.r,
-                        offset: Offset(0, 10.h),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.flash_on_rounded,
-                      size: 50.sp, // Adaptive Icon
-                      color: AppColors.primary,
-                    ),
-                  ),
+                // --- CHANGED: Removed Container/Shadow, just showing Big Logo ---
+                Image.asset(
+                  "assets/icons/logo-back.png",
+                  width: 160.w, // Increased size (was 100)
+                  height: 160.w,
+                  fit: BoxFit.contain,
                 ),
-                SizedBox(height: 40.h),
+                // -----------------------------------------------------------
 
-                Text(
-                  "FastGoods",
-                  style: TextStyle(
-                    fontSize: 32.sp, // Adaptive Font
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textBlack,
-                    letterSpacing: -0.5,
-                  ),
-                ),
+                SizedBox(height: 30.h), // Adjusted spacing
+
+                // Text(
+                //   "GetIt",
+                //   style: TextStyle(
+                //     fontSize: 32.sp,
+                //     fontWeight: FontWeight.w700,
+                //     color: AppColors.textBlack,
+                //     letterSpacing: -0.5,
+                //   ),
+                // ),
                 SizedBox(height: 8.h),
 
                 Text(
                   "Groceries in minutes",
                   style: TextStyle(
-                    fontSize: 16.sp, // Adaptive Font
+                    fontSize: 16.sp,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -108,14 +96,14 @@ class _SplashScreenState extends State<SplashScreen> {
           ),
 
           Positioned(
-            bottom: 40.h, // Adaptive Position
+            bottom: 40.h,
             left: 0,
             right: 0,
             child: Column(
               children: [
                 Container(
-                  width: 150.w, // Adaptive Width
-                  height: 4.h, // Adaptive Height
+                  width: 150.w,
+                  height: 4.h,
                   decoration: BoxDecoration(
                     color: Colors.grey[100],
                     borderRadius: BorderRadius.circular(2.r),
@@ -124,22 +112,24 @@ class _SplashScreenState extends State<SplashScreen> {
                     borderRadius: BorderRadius.circular(2.r),
                     child: const LinearProgressIndicator(
                       backgroundColor: Colors.transparent,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
                     ),
                   ),
                 ),
                 SizedBox(height: 20.h),
                 Text(
-                  "v1.0.2",
+                  "v1.0.0",
                   style: TextStyle(
                     color: AppColors.textGrey,
-                    fontSize: 12.sp, // Adaptive Font
+                    fontSize: 12.sp,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

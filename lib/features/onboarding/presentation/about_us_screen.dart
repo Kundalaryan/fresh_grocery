@@ -24,25 +24,24 @@ class AboutUsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.shopping_bag, // Simple black bag icon
-                    color: Colors.black,
-                    size: 28.sp,
+                  Image.asset(
+                    "assets/icons/logo-back.png",
+                    width: 80.w, // Adjusted size to fit the header
+                    height: 80.w,
                   ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    "FastGoods", // Kept your project name
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+                  SizedBox(width: 10.w),
+                  // Text(
+                  //   "GetIt", // Kept your project name
+                  //   style: TextStyle(
+                  //     fontSize: 24.sp,
+                  //     fontWeight: FontWeight.bold,
+                  //     color: Colors.black,
+                  //   ),
+                  // ),
                 ],
               ),
 
               const Spacer(flex: 2), // Pushes content to visual center
-
               // 2. MAIN HEADLINE
               Text(
                 "Essentials\ndelivered simply.",
@@ -113,7 +112,6 @@ class AboutUsScreen extends StatelessWidget {
               ),
 
               const Spacer(flex: 3), // Pushes buttons to bottom area
-
               // 7. SIGN UP BUTTON (Outlined)
               SizedBox(
                 width: double.infinity,
@@ -122,11 +120,16 @@ class AboutUsScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const SignUpScreen(),
+                      ),
                     );
                   },
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.primary, width: 1.5),
+                    side: const BorderSide(
+                      color: AppColors.primary,
+                      width: 1.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.r),
                     ),
@@ -149,7 +152,9 @@ class AboutUsScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const LoginScreen(),
+                    ),
                   );
                 },
                 child: Text(
@@ -167,10 +172,7 @@ class AboutUsScreen extends StatelessWidget {
               // 9. FOOTER TEXT
               Text(
                 "Terms of Service and Privacy Policy apply.",
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey[400],
-                ),
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey[400]),
               ),
 
               SizedBox(height: 10.h),
