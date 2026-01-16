@@ -71,4 +71,29 @@ class ProfileRepository {
       return ApiResponse(success: false, message: e.toString());
     }
   }
+  Future<ApiResponse<bool>> updatePassword(String currentPassword, String newPassword) async {
+    try {
+      final response = await _dio.patch(
+        '/user/password',
+        data: {
+          "currentPassword": currentPassword,
+          "newPassword": newPassword,
+        },
+      );
+
+      return ApiResponse<bool>(
+        success: response.data['success'] ?? true,
+        message: response.data['message'] ?? 'Password updated successfully',
+        data: true,
+      );
+    } on DioException catch (e) {
+      String errorMessage = "Failed to update password";
+      if (e.response?.data != null && e.response!.data is Map) {
+        errorMessage = e.response!.data['message'] ?? errorMessage;
+      }
+      return ApiResponse(success: false, message: errorMessage);
+    } catch (e) {
+      return ApiResponse(success: false, message: e.toString());
+    }
+  }
 }

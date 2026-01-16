@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
-import 'package:google_fonts/google_fonts.dart'; // Keep if used globally, else remove
-
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../onboarding/presentation/about_us_screen.dart';
@@ -19,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // State Variables
   bool _isSendingFeedback = false;
+  bool _isUpdatingPassword = false; // Loading state for password
   String _userName = "Loading...";
 
   // Controllers
@@ -55,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)), // Adaptive
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
               title: Text("Edit Name", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp)),
               content: TextField(
                 controller: nameController,
@@ -143,21 +142,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18.sp, // Adaptive Font
+            fontSize: 18.sp,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(24.0.r), // Adaptive Padding
+        padding: EdgeInsets.all(24.0.r),
         child: Column(
           children: [
             // --- 1. PROFILE HEADER ---
             Center(
               child: Column(
                 children: [
-                  SizedBox(height: 10.h), // Adaptive Height
+                  SizedBox(height: 10.h),
 
-                  // --- CLICKABLE NAME ROW ONLY ---
+                  // --- CLICKABLE NAME ROW ---
                   GestureDetector(
                     onTap: _showEditNameDialog,
                     child: Row(
@@ -166,13 +165,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Text(
                           _userName,
                           style: TextStyle(
-                            fontSize: 26.sp, // Adaptive Font
+                            fontSize: 26.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        Icon(Icons.edit, size: 20.sp, color: AppColors.primary), // Adaptive Icon
+                        Icon(Icons.edit, size: 20.sp, color: AppColors.primary),
                       ],
                     ),
                   ),
@@ -180,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            SizedBox(height: 40.h), // Increased spacing after header
+            SizedBox(height: 40.h),
 
             // --- 2. FEEDBACK CARD ---
             _buildSectionCard(
@@ -191,7 +190,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFF4F5F7),
-                      borderRadius: BorderRadius.circular(12.r), // Adaptive Radius
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
                     child: TextField(
                       controller: _feedbackController,
@@ -201,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         hintText: "Tell us how we can improve...",
                         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.all(16.r), // Adaptive Padding
+                        contentPadding: EdgeInsets.all(16.r),
                       ),
                     ),
                   ),
@@ -209,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: SizedBox(
-                      height: 40.h, // Adaptive Height
+                      height: 40.h,
                       child: ElevatedButton(
                         onPressed: _isSendingFeedback
                             ? null
@@ -262,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             SizedBox(height: 20.h),
 
-            // --- 3. SECURITY CARD ---
+            // --- 3. SECURITY CARD (Password Update) ---
             _buildSectionCard(
               title: "Security",
               icon: Icons.lock,
@@ -275,18 +274,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildLabel("New Password"),
                   _buildPasswordField(_newPassController, "Enter new password"),
                   SizedBox(height: 24.h),
+
+                  // UPDATE BUTTON
                   SizedBox(
                     width: double.infinity,
                     height: 50.h,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Call Update Password API
+                      onPressed: _isUpdatingPassword
+                          ? null
+                          : () async {
+                        final current = _currentPassController.text.trim();
+                        final newPass = _newPassController.text.trim();
+
+                        // Validation
+                        if (current.isEmpty || newPass.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Please fill all password fields")),
+                          );
+                          return;
+                        }
+                        if (newPass.length < 8) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("New password must be at least 8 characters")),
+                          );
+                          return;
+                        }
+
+                        // Start Loading
+                        setState(() => _isUpdatingPassword = true);
+
+                        // API Call
+                        final response = await _repository.updatePassword(current, newPass);
+
+                        // Handle Result
+                        if (mounted) {
+                          setState(() => _isUpdatingPassword = false);
+
+                          if (response.success) {
+                            _currentPassController.clear();
+                            _newPassController.clear();
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(response.message), backgroundColor: Colors.green),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+                            );
+                          }
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
                       ),
-                      child: Text(
+                      child: _isUpdatingPassword
+                          ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(
                         "Update Password",
                         style: TextStyle(
                           color: Colors.white,
@@ -339,10 +383,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSectionCard({required String title, required IconData icon, required Widget child}) {
     return Container(
-      padding: EdgeInsets.all(20.r), // Adaptive Padding
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20.r), // Adaptive Radius
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
