@@ -77,4 +77,54 @@ class AuthRepository {
       return ApiResponse(success: false, message: e.toString());
     }
   }
+  Future<ApiResponse<bool>> sendForgotPasswordOtp(String phone) async {
+    try {
+      final response = await _dio.post(
+        '/auth/forgot-password/send-otp',
+        data: {'phone': phone},
+      );
+
+      return ApiResponse<bool>(
+        success: response.data['success'] ?? true,
+        message: response.data['message'] ?? 'OTP sent successfully',
+        data: true,
+      );
+    } on DioException catch (e) {
+      String errorMessage = "Failed to send OTP";
+      if (e.response?.data != null && e.response!.data is Map) {
+        errorMessage = e.response!.data['message'] ?? errorMessage;
+      }
+      return ApiResponse(success: false, message: errorMessage);
+    } catch (e) {
+      return ApiResponse(success: false, message: e.toString());
+    }
+  }
+  // POST /auth/forgot-password/reset
+  Future<ApiResponse<bool>> resetPassword(String phone, String otp, String newPassword) async {
+    try {
+      final response = await _dio.post(
+        '/auth/forgot-password/reset',
+        data: {
+          "phone": phone,
+          "otp": otp,
+          "newPassword": newPassword
+        },
+      );
+
+      return ApiResponse<bool>(
+        success: response.data['success'] ?? true,
+        message: response.data['message'] ?? 'Password reset successfully',
+        data: true,
+      );
+    } on DioException catch (e) {
+      // Handle 400 (OTP expired/invalid)
+      String errorMessage = "Failed to reset password";
+      if (e.response?.data != null && e.response!.data is Map) {
+        errorMessage = e.response!.data['message'] ?? errorMessage;
+      }
+      return ApiResponse(success: false, message: errorMessage);
+    } catch (e) {
+      return ApiResponse(success: false, message: e.toString());
+    }
+  }
 }

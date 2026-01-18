@@ -14,8 +14,10 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  // Controllers
   final _phoneController = TextEditingController();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController(); // NEW CONTROLLER
   final _passwordController = TextEditingController();
 
   String? _selectedAddress;
@@ -53,6 +55,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final request = SignUpRequest(
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
+      email: _emailController.text.trim(), // PASS EMAIL
       password: _passwordController.text,
       address: _selectedAddress!,
     );
@@ -138,16 +141,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 SizedBox(height: 30.h),
 
-                // 3. PHONE INPUT
+                // 1. PHONE INPUT
                 _buildLabel("Phone Number"),
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
-
-                  // --- KEYBOARD UX 1: Next Field ---
                   textInputAction: TextInputAction.next,
-
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "9876543210",
@@ -163,15 +163,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
 
-                // 4. NAME INPUT
+                // 2. NAME INPUT
                 _buildLabel("Name"),
                 TextFormField(
                   controller: _nameController,
                   keyboardType: TextInputType.name,
-
-                  // --- KEYBOARD UX 2: Next Field ---
                   textInputAction: TextInputAction.next,
-
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(hint: "Full Name").copyWith(
                     suffixIcon: Icon(Icons.person_outline, color: Colors.grey[500], size: 22.sp),
@@ -179,7 +176,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: (val) => val == null || val.isEmpty ? "Required" : null,
                 ),
 
-                // 5. ADDRESS INPUT (DROPDOWN)
+                // 3. EMAIL INPUT (NEW)
+                _buildLabel("Email"),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  style: TextStyle(fontSize: 16.sp),
+                  decoration: _inputDecoration(hint: "example@mail.com").copyWith(
+                    suffixIcon: Icon(Icons.email_outlined, color: Colors.grey[500], size: 22.sp),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return "Required";
+                    // REGEX FOR EMAIL VALIDATION
+                    final bool emailValid =
+                    RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                        .hasMatch(val);
+                    if (!emailValid) return "Enter a valid email";
+                    return null;
+                  },
+                ),
+
+                // 4. ADDRESS INPUT
                 _buildLabel("Address"),
                 DropdownButtonFormField<String>(
                   value: _selectedAddress,
@@ -203,16 +221,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   validator: (value) => value == null ? "Please select an address" : null,
                 ),
 
-                // 6. PASSWORD INPUT
+                // 5. PASSWORD INPUT
                 _buildLabel("Password"),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
-
-                  // --- KEYBOARD UX 3: Done & Submit ---
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleSignUp(),
-
                   style: TextStyle(fontSize: 16.sp),
                   decoration: _inputDecoration(
                     hint: "Create a password",
@@ -231,7 +246,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 SizedBox(height: 20.h),
 
-                // 7. CHECKBOX & TERMS
+                // CHECKBOX
                 Row(
                   children: [
                     SizedBox(
@@ -276,7 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 SizedBox(height: 30.h),
 
-                // 8. SIGN UP BUTTON
+                // BUTTON
                 SizedBox(
                   width: double.infinity,
                   height: 56.h,
@@ -303,7 +318,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                 SizedBox(height: 30.h),
 
-                // 9. FOOTER (Adaptive)
+                // FOOTER
                 Center(
                   child: Wrap(
                     alignment: WrapAlignment.center,
@@ -358,7 +373,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // Common Style for Inputs
   InputDecoration _inputDecoration({required String hint}) {
     return InputDecoration(
       hintText: hint,
