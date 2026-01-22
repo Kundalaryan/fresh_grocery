@@ -23,14 +23,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? _selectedAddress;
 
   final List<String> _addressOptions = [
-    "Bishna",
-    "Jammu",
-    "Samba",
-    "Kathua",
-    "Udhampur",
-    "R.S. Pura",
-    "Gandhi Nagar",
-    "Trikuta Nagar"
+    "Main Gate",
+    "North Block",
+    "Canary hostel",
+    "Dedhar Hostel",
+    "Open Gym",
+    "Breag hostel",
+    "Egret hostel",
+    "Pushkar block",
+    "Mansar block",
+    "Shivsagar",
+    "Fulgar hostel",
+    "Nanda devi Apartments",
+    "Aravali Apartments",
+    "Kamet Apartments",
+    "Trikuta Apartments",
+    "Govardhan Apartments",
+    "Sumeru Apartments"
   ];
 
   bool _obscurePassword = true;

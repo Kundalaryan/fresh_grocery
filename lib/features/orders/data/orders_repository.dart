@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import '../../../core/errors/api_error_handler.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/api_response.dart';
 import '../models/order_model.dart';
@@ -51,7 +52,7 @@ class OrdersRepository {
         data: true, // Just return true to indicate it worked
       );
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));
     }
   }
   // GET /user/orders/{orderId}/reciept

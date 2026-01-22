@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // For Haptics
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -84,22 +85,22 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // --- FIXED: REMOVED LEADING BACK BUTTON ---
+        automaticallyImplyLeading: false,
+        // ------------------------------------------
         title: Text(
           "My Cart (${cartItems.length})",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 20.sp, // Changed from default
+            fontSize: 20.sp,
           ),
         ),
         actions: [
           if (cartItems.isNotEmpty)
             TextButton(
               onPressed: () {
+                HapticFeedback.mediumImpact();
                 ref.read(cartProvider.notifier).clearCart();
               },
               child: Text(
@@ -115,176 +116,171 @@ class _CartScreenState extends ConsumerState<CartScreen> {
       ),
       body: cartItems.isEmpty
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shopping_basket_outlined,
-                    size: 80.sp,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 20.h),
-                  Text(
-                    "Your cart is empty",
-                    style: TextStyle(color: Colors.grey, fontSize: 16.sp),
-                  ),
-                ],
-              ),
-            )
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.shopping_basket_outlined,
+              size: 80.sp,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              "Your cart is empty",
+              style: TextStyle(color: Colors.grey, fontSize: 16.sp),
+            ),
+          ],
+        ),
+      )
           : Column(
-              children: [
-                // 1. SCROLLABLE ITEM LIST
-                Expanded(
-                  child: ListView.separated(
-                    padding: EdgeInsets.all(20.r),
-                    itemCount: cartItems.length,
-                    separatorBuilder: (_, __) =>
-                        Divider(height: 30.h, color: const Color(0xFFF0F0F0)),
-                    itemBuilder: (context, index) {
-                      final item = cartItems[index];
-                      return _buildCartItem(item);
-                    },
-                  ),
-                ),
+        children: [
+          // 1. SCROLLABLE ITEM LIST
+          Expanded(
+            child: ListView.separated(
+              padding: EdgeInsets.all(20.r),
+              itemCount: cartItems.length,
+              separatorBuilder: (_, __) =>
+                  Divider(height: 30.h, color: const Color(0xFFF0F0F0)),
+              itemBuilder: (context, index) {
+                final item = cartItems[index];
+                return _buildCartItem(item);
+              },
+            ),
+          ),
 
-                // 2. BOTTOM SECTION
-                Container(
-                  padding: EdgeInsets.all(24.r),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 20.r,
-                        offset: const Offset(0, -5),
+          // 2. BOTTOM SECTION
+          Container(
+            padding: EdgeInsets.all(24.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 20.r,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildPriceRow("Subtotal", subtotal),
+
+                  SizedBox(height: 20.h),
+                  const Divider(color: Color(0xFFE0E0E0), thickness: 1),
+                  SizedBox(height: 20.h),
+
+                  // TOTAL
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Total",
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "₹${total.toStringAsFixed(2)}",
+                            style: TextStyle(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            "including Taxes",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  child: SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildPriceRow("Subtotal", subtotal),
+                  SizedBox(height: 24.h),
 
-                        SizedBox(height: 20.h),
-                        const Divider(color: Color(0xFFE0E0E0), thickness: 1),
-                        SizedBox(height: 20.h),
-
-                        // TOTAL
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Total",
+                  // CHECKOUT BUTTON
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56.h,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _handleCheckout,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.r),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                          : Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              "Proceed to Checkout",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                          ),
+                          SizedBox(width: 10.w),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(
+                                8.r,
+                              ),
+                            ),
+                            child: Row(
                               children: [
                                 Text(
                                   "₹${total.toStringAsFixed(2)}",
                                   style: TextStyle(
-                                    fontSize: 24.sp,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black,
+                                    color: Colors.white,
+                                    fontSize: 14.sp,
                                   ),
                                 ),
-                                Text(
-                                  "including Taxes",
-                                  style: TextStyle(
-                                    fontSize: 12.sp,
-                                    color: Colors.grey,
-                                  ),
+                                SizedBox(width: 8.w),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 16.sp,
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 24.h),
-
-                        // CHECKOUT BUTTON
-                        // CHECKOUT BUTTON
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56.h,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleCheckout,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.r),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      // FIX: Wrap Text in Flexible to prevent overflow
-                                      Flexible(
-                                        child: Text(
-                                          "Proceed to Checkout",
-                                          maxLines: 1,
-                                          overflow: TextOverflow
-                                              .ellipsis, // Adds "..." if screen is too small
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-
-                                      SizedBox(width: 10.w), // Safety gap
-
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12.w,
-                                          vertical: 6.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            8.r,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              "₹${total.toStringAsFixed(2)}",
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                                fontSize: 14.sp,
-                                              ),
-                                            ),
-                                            SizedBox(width: 8.w),
-                                            Icon(
-                                              Icons.arrow_forward_rounded,
-                                              color: Colors.white,
-                                              size: 16.sp,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -297,24 +293,32 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           width: 80.w,
           height: 80.h,
           decoration: BoxDecoration(
-            color: Colors.grey[100],
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 8.r, // Adaptive radius
+                offset: const Offset(0, 2),
+              )
+            ],
           ),
           child: item.imageUrl.isNotEmpty
               ? ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: CachedNetworkImage(
-                    imageUrl: item.imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => const Center(
-                      child: Icon(Icons.image, color: Colors.grey),
-                    ),
-                    errorWidget: (_, __, ___) => const Icon(
-                      Icons.image_not_supported,
-                      color: Colors.grey,
-                    ),
-                  ),
-                )
+            borderRadius: BorderRadius.circular(16.r),
+            child: CachedNetworkImage(
+              imageUrl: item.imageUrl,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => const Center(
+                child: Icon(Icons.image, color: Colors.grey),
+              ),
+              errorWidget: (_, __, ___) => const Icon(
+                Icons.image_not_supported,
+                color: Colors.grey,
+              ),
+            ),
+          )
               : const Icon(Icons.image, color: Colors.grey),
         ),
         SizedBox(width: 16.w),
@@ -324,16 +328,22 @@ class _CartScreenState extends ConsumerState<CartScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // FIXED ROW OVERFLOW HERE
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    item.name,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
+                  Expanded( // Wraps Name so it doesn't push Price off screen
+                    child: Text(
+                      item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
+                  SizedBox(width: 8.w),
                   Text(
                     "₹${(item.price * item.quantity).toStringAsFixed(2)}",
                     style: TextStyle(
@@ -364,6 +374,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                           icon: Icon(Icons.remove, size: 18.sp),
                           color: Colors.black,
                           onPressed: () {
+                            HapticFeedback.selectionClick();
                             ref
                                 .read(cartProvider.notifier)
                                 .updateQuantity(item.productId, -1);
@@ -386,6 +397,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             icon: Icon(Icons.add, size: 18.sp),
                             color: Colors.white,
                             onPressed: () {
+                              HapticFeedback.selectionClick();
                               ref
                                   .read(cartProvider.notifier)
                                   .updateQuantity(item.productId, 1);

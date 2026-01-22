@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
+import '../../../core/widgets/main_layout.dart';
 import '../../home/presentation/home_screen.dart';
 import '../../onboarding/presentation/about_us_screen.dart';
 
@@ -34,7 +35,9 @@ class _SplashScreenState extends State<SplashScreen> {
     if (token != null && token.isNotEmpty) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(
+          builder: (context) => const MainLayout(),
+        ), // Go to MainLayout
       );
     } else {
       Navigator.pushReplacement(
@@ -68,10 +71,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   height: 160.w,
                   fit: BoxFit.contain,
                 ),
+
                 // -----------------------------------------------------------
-
                 SizedBox(height: 30.h), // Adjusted spacing
-
                 // Text(
                 //   "GetIt",
                 //   style: TextStyle(

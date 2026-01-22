@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../core/errors/api_error_handler.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/api_response.dart';
 
@@ -30,7 +31,7 @@ class ProfileRepository {
 
       return ApiResponse(success: false, message: userMessage);
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));;
     }
   }
   Future<ApiResponse<String>> getUserName() async {
@@ -68,7 +69,7 @@ class ProfileRepository {
         data: true,
       );
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));
     }
   }
   Future<ApiResponse<bool>> updatePassword(String currentPassword, String newPassword) async {
@@ -93,7 +94,7 @@ class ProfileRepository {
       }
       return ApiResponse(success: false, message: errorMessage);
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));
     }
   }
 }

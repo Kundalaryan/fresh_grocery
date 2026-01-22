@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../core/errors/api_error_handler.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/storage/secure_storage.dart';
@@ -40,7 +41,7 @@ class AuthRepository {
         },
       );
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));
     }
   }
 
@@ -74,7 +75,7 @@ class AuthRepository {
       }
       return ApiResponse(success: false, message: errorMessage);
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));;
     }
   }
   Future<ApiResponse<bool>> sendForgotPasswordOtp(String phone) async {
@@ -96,7 +97,7 @@ class AuthRepository {
       }
       return ApiResponse(success: false, message: errorMessage);
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));;
     }
   }
   // POST /auth/forgot-password/reset
@@ -124,7 +125,7 @@ class AuthRepository {
       }
       return ApiResponse(success: false, message: errorMessage);
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));;
     }
   }
 }

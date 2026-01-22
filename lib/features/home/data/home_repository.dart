@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart'; // 1. Required for 'compute'
+import '../../../core/errors/api_error_handler.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/api_response.dart';
 import '../models/product_model.dart';
@@ -43,7 +44,7 @@ class HomeRepository {
       return await compute(_parseProductsResponse, response.data);
 
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));
     }
   }
   Future<ApiResponse<String>> getUserAddress() async {

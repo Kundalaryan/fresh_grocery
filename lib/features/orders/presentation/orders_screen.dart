@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // IMPORT ADDED
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/skeletons.dart';
 import '../data/orders_repository.dart';
@@ -71,33 +71,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
+        // --- FIXED: REMOVED BACK BUTTON ---
+        automaticallyImplyLeading: false,
+        // ----------------------------------
         title: Text(
           "Order History",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18.sp, // Adaptive Font
+            fontSize: 20.sp, // Increased size slightly for main header
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.black),
-            onPressed: () {
-              // Optional: Advanced filter logic
-            },
-          ),
-        ],
+        // --- FIXED: REMOVED FILTER ACTION BUTTON ---
+        actions: const [],
+        // -------------------------------------------
       ),
       body: Column(
         children: [
           // 1. FILTER CHIPS
           Container(
-            height: 60.h, // Adaptive Height
+            height: 60.h,
             padding: EdgeInsets.symmetric(vertical: 10.h),
             child: ListView.separated(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -118,7 +111,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       color: isSelected
                           ? AppColors.primary
                           : const Color(0xFFF4F5F7),
-                      borderRadius: BorderRadius.circular(30.r), // Adaptive Radius
+                      borderRadius: BorderRadius.circular(30.r),
                     ),
                     child: Center(
                       child: Text(
@@ -126,7 +119,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         style: TextStyle(
                           color: isSelected ? Colors.white : Colors.grey[600],
                           fontWeight: FontWeight.w600,
-                          fontSize: 14.sp, // Adaptive Font
+                          fontSize: 14.sp,
                         ),
                       ),
                     ),
@@ -204,7 +197,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
     return GestureDetector(
       onTap: () async {
-        // Navigate and wait for refresh signal
         final bool? shouldRefresh = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -213,14 +205,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
         );
 
         if (shouldRefresh == true) {
-          _fetchOrders(); // Reload list if order was cancelled
+          _fetchOrders();
         }
       },
       child: Container(
-        padding: EdgeInsets.all(16.r), // Adaptive Padding
+        padding: EdgeInsets.all(16.r),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20.r), // Adaptive Radius
+          borderRadius: BorderRadius.circular(20.r),
           border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
@@ -251,7 +243,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
               ),
             ),
 
-            SizedBox(width: 12.w), // Adjusted spacing
+            SizedBox(width: 12.w),
 
             // Order Info
             Expanded(
@@ -263,7 +255,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 16.sp, // Adaptive Font
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -311,11 +303,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // UPDATED: Rupee Symbol
                 Text(
                   "₹${order.totalAmount.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 16.sp, // Adaptive Font
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
@@ -324,7 +315,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 Text(
                   btnText,
                   style: TextStyle(
-                    fontSize: 14.sp, // Adaptive Font
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
                   ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/storage/secure_storage.dart';
 import '../../onboarding/presentation/about_us_screen.dart';
@@ -17,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // State Variables
   bool _isSendingFeedback = false;
-  bool _isUpdatingPassword = false; // Loading state for password
+  bool _isUpdatingPassword = false;
   String _userName = "Loading...";
 
   // Controllers
@@ -45,7 +47,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showEditNameDialog() {
-    final TextEditingController nameController = TextEditingController(text: _userName);
+    final TextEditingController nameController =
+    TextEditingController(text: _userName);
     bool isUpdating = false;
 
     showDialog(
@@ -54,24 +57,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-              title: Text("Edit Name", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.r)),
+              title: Text("Edit Name",
+                  style:
+                  TextStyle(fontWeight: FontWeight.bold, fontSize: 18.sp)),
               content: TextField(
                 controller: nameController,
                 style: TextStyle(fontSize: 16.sp),
                 decoration: InputDecoration(
                   hintText: "Enter your name",
                   hintStyle: TextStyle(color: Colors.grey, fontSize: 14.sp),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r)),
                   filled: true,
                   fillColor: Colors.grey[100],
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  contentPadding:
+                  EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
                 ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text("Cancel", style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
+                  child: Text("Cancel",
+                      style: TextStyle(color: Colors.grey, fontSize: 14.sp)),
                 ),
                 ElevatedButton(
                   onPressed: isUpdating
@@ -82,30 +91,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     setStateDialog(() => isUpdating = true);
 
-                    final response = await _repository.updateUserName(text);
+                    final response =
+                    await _repository.updateUserName(text);
 
                     if (context.mounted) {
                       Navigator.pop(context);
 
                       if (response.success) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Name updated!"), backgroundColor: Colors.green),
+                          const SnackBar(
+                              content: Text("Name updated!"),
+                              backgroundColor: Colors.green),
                         );
                         _fetchUserName();
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+                          SnackBar(
+                              content: Text(response.message),
+                              backgroundColor: Colors.red),
                         );
                       }
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r)),
                   ),
                   child: isUpdating
-                      ? SizedBox(width: 16.w, height: 16.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : Text("Save", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                      ? SizedBox(
+                      width: 16.w,
+                      height: 16.w,
+                      child: const CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                      : Text("Save",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp)),
                 ),
               ],
             );
@@ -133,16 +156,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: const Color(0xFFF8F9FB),
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // --- FIXED: REMOVED BACK BUTTON ---
+        automaticallyImplyLeading: false,
+        // ----------------------------------
         title: Text(
           "Profile",
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 18.sp,
+            fontSize: 20.sp,
           ),
         ),
       ),
@@ -198,7 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       style: TextStyle(fontSize: 14.sp),
                       decoration: InputDecoration(
                         hintText: "Tell us how we can improve...",
-                        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
+                        hintStyle:
+                        TextStyle(color: Colors.grey[400], fontSize: 14.sp),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.all(16.r),
                       ),
@@ -216,23 +239,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           final text = _feedbackController.text.trim();
                           if (text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Please write a suggestion first")),
+                              const SnackBar(
+                                  content: Text(
+                                      "Please write a suggestion first")),
                             );
                             return;
                           }
                           setState(() => _isSendingFeedback = true);
-                          final response = await _repository.submitSuggestion(text);
+                          final response =
+                          await _repository.submitSuggestion(text);
                           if (mounted) {
                             setState(() => _isSendingFeedback = false);
                             if (response.success) {
                               _feedbackController.clear();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Thank you! Feedback sent."), backgroundColor: Colors.green),
+                                const SnackBar(
+                                    content: Text(
+                                        "Thank you! Feedback sent."),
+                                    backgroundColor: Colors.green),
                               );
-                              FocusManager.instance.primaryFocus?.unfocus();
+                              FocusManager.instance.primaryFocus
+                                  ?.unfocus();
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+                                SnackBar(
+                                    content: Text(response.message),
+                                    backgroundColor: Colors.red),
                               );
                             }
                           }
@@ -240,10 +272,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary.withOpacity(0.1),
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r)),
                         ),
                         child: _isSendingFeedback
-                            ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(strokeWidth: 2))
+                            ? SizedBox(
+                            width: 20.w,
+                            height: 20.w,
+                            child: const CircularProgressIndicator(
+                                strokeWidth: 2))
                             : Text(
                           "Send Feedback",
                           style: TextStyle(
@@ -283,19 +320,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: _isUpdatingPassword
                           ? null
                           : () async {
-                        final current = _currentPassController.text.trim();
+                        final current =
+                        _currentPassController.text.trim();
                         final newPass = _newPassController.text.trim();
 
                         // Validation
                         if (current.isEmpty || newPass.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Please fill all password fields")),
+                            const SnackBar(
+                                content: Text(
+                                    "Please fill all password fields")),
                           );
                           return;
                         }
                         if (newPass.length < 8) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("New password must be at least 8 characters")),
+                            const SnackBar(
+                                content: Text(
+                                    "New password must be at least 8 characters")),
                           );
                           return;
                         }
@@ -304,7 +346,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         setState(() => _isUpdatingPassword = true);
 
                         // API Call
-                        final response = await _repository.updatePassword(current, newPass);
+                        final response = await _repository.updatePassword(
+                            current, newPass);
 
                         // Handle Result
                         if (mounted) {
@@ -315,21 +358,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             _newPassController.clear();
                             FocusManager.instance.primaryFocus?.unfocus();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(response.message), backgroundColor: Colors.green),
+                              SnackBar(
+                                  content: Text(response.message),
+                                  backgroundColor: Colors.green),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(response.message), backgroundColor: Colors.red),
+                              SnackBar(
+                                  content: Text(response.message),
+                                  backgroundColor: Colors.red),
                             );
                           }
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r)),
                       ),
                       child: _isUpdatingPassword
-                          ? SizedBox(width: 20.w, height: 20.w, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: const CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2))
                           : Text(
                         "Update Password",
                         style: TextStyle(
@@ -352,7 +404,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               height: 56.h,
               child: OutlinedButton.icon(
                 onPressed: _handleLogout,
-                icon: Icon(Icons.logout, color: const Color(0xFFE53935), size: 22.sp),
+                icon: Icon(Icons.logout,
+                    color: const Color(0xFFE53935), size: 22.sp),
                 label: Text(
                   "Log Out",
                   style: TextStyle(
@@ -364,7 +417,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.red.shade100),
                   backgroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r)),
                 ),
               ),
             ),
@@ -381,7 +435,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSectionCard({required String title, required IconData icon, required Widget child}) {
+  Widget _buildSectionCard(
+      {required String title, required IconData icon, required Widget child}) {
     return Container(
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
@@ -447,7 +502,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+          contentPadding:
+          EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
         ),
       ),
     );

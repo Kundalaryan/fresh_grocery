@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart'; // REQUIRED: Make sure this is imported
+import '../../../core/errors/api_error_handler.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/api_response.dart';
 import '../models/cart_item_model.dart';
@@ -62,7 +63,7 @@ class CartRepository {
       return ApiResponse(success: false, message: userReadableMessage);
 
     } catch (e) {
-      return ApiResponse(success: false, message: e.toString());
+      return ApiResponse(success: false, message: ApiErrorHandler.getMessage(e));
     }
   }
 }
